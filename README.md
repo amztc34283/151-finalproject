@@ -1,0 +1,3 @@
+- Run reg_file Test:
+	- iverilog -o regfile ./hardware/src/riscv_core/reg_file.v ./hardware/sim/reg_file_testbench.v
+	- ./regfile
