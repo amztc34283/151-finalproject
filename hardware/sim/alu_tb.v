@@ -417,6 +417,9 @@ module alu_tb();
         if (out != 2**31)
             $display("sub failed; output=%d, expected=%d", $signed(out),  2**31);
 
+        // The following instructions use the ALU no differently than their
+        // immediate counterparts.
+
         // test for sll
         // SLL rd,rs1,rs2	Shift Left Logical	rd <- ux(rs1) « rs2
 
