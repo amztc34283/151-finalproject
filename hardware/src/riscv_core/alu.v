@@ -5,11 +5,11 @@
 `define ALU_ORI 4
 `define ALU_ANDI 5
 `define ALU_SLLI 6
-`define ALU_SRAI 7 
-`define ALU_ADD 8
-`define ALU_SUB 9
-`define ALU_SLL 10
-`define ALU_SLA 11
+`define ALU_SRLI 7
+`define ALU_SRAI 8 
+`define ALU_ADD 9
+`define ALU_SUB 10
+`define ALU_SLL 11
 `define ALU_SLT 12
 `define ALUT_SLTU 13
 `define ALU_XOR 14
@@ -46,6 +46,7 @@ module alu (
             `ALU_SRA:   res = ($signed(op1)) >>> op2[5:0];                      // 17
             `ALU_OR:    res = ($unsigned(op1)) | ($unsigned(op2));              // 18
             `ALU_AND:   res = ($unsigned(op1)) & ($unsigned(op2));              // 19
+            default:    res = 0;
         endcase
     end
 endmodule
