@@ -3,18 +3,23 @@
 `define B_TYPE 3
 
 module imm_gen (
-    input [31:0] PC,
-    output reg [31:0] PC_out
+    input [24:0] inst_in,
+    input [1:0] imm_sel,
+    output reg [31:0] imm_out
 );
 
-    assign PC_out = PC + 4;
+    always @(*) begin
+        case (imm_sel)
+            `I_TYPE: imm_out = {{20{inst_in[24]}}, inst_in[24:13]}; 
+            `S_TYPE: imm_out = {{20{inst_in[34]}}, inst_in[24:18], inst_in[4:0]};
+            `B_TYPE: imm_out = {{10{inst_in[24]}}, inst_in[0], inst_in[23:18], inst_in[4:1], 1b'0};
+        endcase
+    end
+    
 
 endmodule
 
 /* 
-    #  1 6 4 1 
-    XXXX XXXX XXXX XXXX XXXX 1000 1000 0100
-
         RISCV Immediate Encodings 
     R: x
     I: inst[31:20] -> imm := sign_extend_32(inst[31:20]) == sign_extend_32(inst_in[24:13])
