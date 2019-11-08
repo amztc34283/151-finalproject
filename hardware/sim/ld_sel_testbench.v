@@ -60,6 +60,8 @@ module ld_sel_testbench();
         if (dout != 32'h00000000) begin
             $display("Failed Default Sel Test Case");
         end
+
+        $finish();
     end
 
 endmodule
