@@ -19,6 +19,18 @@
 `define ALU_AND 18
 
 
+`define SUB 8
+`define ADD 0
+`define SLT 2
+`define SLTU 3
+`define XOR 4
+`define OR 6
+`define AND 7
+`define SLL 1
+`define SRL 5
+`define SRA 13
+`define B 9
+
 module alu (
     input [31:0] op1, op2,
     input [4:0] sel,
@@ -27,29 +39,53 @@ module alu (
 
     always @(*) begin
         case(sel)
-            `ALU_ADDI:  res = ($signed(op1)) + ($unsigned(op2));                // 0
-            `ALU_SLTI:  res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 1
-            `ALU_SLTIU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 2
-            `ALU_XORI:  res = ($unsigned(op1)) ^ ($unsigned(op2));              // 3
-            `ALU_ORI:   res = ($unsigned(op1)) | ($unsigned(op2));              // 4
-            `ALU_ANDI:  res = ($unsigned(op1)) & ($unsigned(op2));              // 5
-            `ALU_SLLI:  res = ($unsigned(op1))  << ($unsigned(op2[5:0]));       // 6
-            `ALU_SRLI:  res = ($unsigned(op1)) >> ($unsigned(op2[5:0]));        // 7
-            `ALU_SRAI:  res = ($signed(op1)) >>> ($unsigned(op2[5:0]));         // 8
-            `ALU_ADD:   res = ($signed(op1)) + ($signed(op2));                  // 9
-            `ALU_SUB:   res = ($signed(op1)) - ($signed(op2));                  // 10
-            `ALU_SLL:   res = ($unsigned(op1)) << op2[5:0];                     // 11
-            `ALU_SLT:   res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 13
-            `ALUT_SLTU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 14
-            `ALU_XOR:   res = ($unsigned(op1)) ^ ($unsigned(op2));              // 15
-            `ALU_SRL:   res = ($unsigned(op1)) >> op2[5:0];                     // 16
-            `ALU_SRA:   res = ($signed(op1)) >>> op2[5:0];                      // 17
-            `ALU_OR:    res = ($unsigned(op1)) | ($unsigned(op2));              // 18
-            `ALU_AND:   res = ($unsigned(op1)) & ($unsigned(op2));              // 19
+            `ADD:  res = ($signed(op1)) + ($unsigned(op2));                // 1
+            `SLT:  res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 2
+            `SLTU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 3
+            `XOR:  res = ($unsigned(op1)) ^ ($unsigned(op2));              // 4
+            `OR:   res = ($unsigned(op1)) | ($unsigned(op2));              // 5
+            `AND:  res = ($unsigned(op1)) & ($unsigned(op2));              // 6
+            `SLL: res = ($unsigned(op1)) << op2[5:0];                     // 7
+            `SRL:  res = ($unsigned(op1)) >> op2[5:0];                      //8
+            `SRA:  res = ($signed(op1)) >>> op2[5:0];                       //9
+            `SUB:   res = ($signed(op1)) - ($signed(op2));                  //10
+            `B: res = op2;
             default:    res = 0;
         endcase
     end
 endmodule
+
+// module alu (
+//     input [31:0] op1, op2,
+//     input [4:0] sel,
+//     output reg [31:0] res
+// );
+
+//     always @(*) begin
+//         case(sel)
+//             `ALU_ADDI:  res = ($signed(op1)) + ($unsigned(op2));                // 0
+//             `ALU_SLTI:  res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 1
+//             `ALU_SLTIU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 2
+//             `ALU_XORI:  res = ($unsigned(op1)) ^ ($unsigned(op2));              // 3
+//             `ALU_ORI:   res = ($unsigned(op1)) | ($unsigned(op2));              // 4
+//             `ALU_ANDI:  res = ($unsigned(op1)) & ($unsigned(op2));              // 5
+//             `ALU_SLLI:  res = ($unsigned(op1))  << ($unsigned(op2[5:0]));       // 6
+//             `ALU_SRLI:  res = ($unsigned(op1)) >> ($unsigned(op2[5:0]));        // 7
+//             `ALU_SRAI:  res = ($signed(op1)) >>> ($unsigned(op2[5:0]));         // 8
+//             `ALU_ADD:   res = ($signed(op1)) + ($signed(op2));                  // 9
+//             `ALU_SUB:   res = ($signed(op1)) - ($signed(op2));                  // 10
+//             `ALU_SLL:   res = ($unsigned(op1)) << op2[5:0];                     // 11
+//             `ALU_SLT:   res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 13
+//             `ALUT_SLTU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 14
+//             `ALU_XOR:   res = ($unsigned(op1)) ^ ($unsigned(op2));              // 15
+//             `ALU_SRL:   res = ($unsigned(op1)) >> op2[5:0];                     // 16
+//             `ALU_SRA:   res = ($signed(op1)) >>> op2[5:0];                      // 17
+//             `ALU_OR:    res = ($unsigned(op1)) | ($unsigned(op2));              // 18
+//             `ALU_AND:   res = ($unsigned(op1)) & ($unsigned(op2));              // 19
+//             default:    res = 0;
+//         endcase
+//     end
+// endmodule
 
 
 // pc	program counter
@@ -106,64 +142,51 @@ endmodule
 // OR rd,rs1,rs2	Or	rd �? ux(rs1) ∨ ux(rs2)
 // AND rd,rs1,rs2	And	rd �? ux(rs1) ∧ ux(rs2)
 
-// addi
-// sluti
-// sltiu
-// sltiu
-// xori
-// ori
-// andi
-// slli
-// srli
-// srai
-// add
-// sub
-// sll
-// slt
-// sltu
-// xor
-// srl
-// sra
-// or 
-// and
+// imm[11:0] rs1 000 rd 0010011 ADDI 
+// imm[11:0] rs1 010 rd 0010011 SLTI 
+// imm[11:0] rs1 011 rd 0010011 SLTIU 
+// imm[11:0] rs1 100 rd 0010011 XORI 
+// imm[11:0] rs1 110 rd 0010011 ORI 
+// imm[11:0] rs1 111 rd 0010011 ANDI 
+// 0000000 shamt rs1 001 rd 0010011 SLLI 
+// 0000000 shamt rs1 101 rd 0010011 SRLI 
+// 0100000 shamt rs1 101 rd 0010011 SRAI 
 
-// add
-// sub
-// logical shift left
-// logical shift right
-// arithmetic shift left
-// arithmetic shift right
-// set less than
-// set less than unsigned
-// and
-// or
-// xor
+// 0000000 rs2 rs1 000 rd 0110011 ADD
+// 0000000 rs2 rs1 001 rd 0110011 SLL 
+// 0000000 rs2 rs1 010 rd 0110011 SLT 
+// 0000000 rs2 rs1 011 rd 0110011 SLTU 
+// 0000000 rs2 rs1 100 rd 0110011 XOR 
+// 0000000 rs2 rs1 101 rd 0110011 SRL 
+// 0100000 rs2 rs1 101 rd 0110011 SRA 
+// 0000000 rs2 rs1 110 rd 0110011 OR 
+// 0000000 rs2 rs1 111 rd 0110011 AND
 
+// 0100000 rs2 rs1 000 rd 0110011 SUB 
 
-// reg [31:0] registers [0:31];
-// assign rd1 = 32'd0;
-// assign rd2 = 32'd0;
+// imm[11:0] rs1 000 rd 0010011 ADDI
+// 0000000 rs2 rs1 000 rd 0110011 ADD
 
-// module rv64_alu(
-// input [63:0] a,
-// input [63:0] b,
-// input [2:0] op,
-// output [63:0] c,
-// );
-// wire [31:0] addw = a[31:0] + b[31:0];
-// wire [31:0] subw = a[31:0] - b[31:0];
-// wire [31:0] sllw = a[31:0] << b[4:0];
-// wire [31:0] sraw = $signed(a[31:0]) >>> b[4:0];
-// always @(*) begin
-// case (op)
-// `ALU_ADD: c = a + b;
-// `ALU_ADDW: c = {32{addw[31]}, addw};
-// `ALU_SUB: c = a - b;
-// `ALU_SUBW: c = {32{subw[31]}, subw};
-// `ALU_SLL: c = a << b[5:0];
-// `ALU_SLLW: c = {32{sllw[31], sllw};
-// `ALU_SRA: c = $signed(a) >>> b[5:0];
-// `ALU_SRAW: c= {32{sraw[31]}, sraw};
-// endcase
-// end
-// endmodule
+// imm[11:0] rs1 010 rd 0010011 SLTI
+// 0000000 rs2 rs1 010 rd 0110011 SLT 
+
+// imm[11:0] rs1 011 rd 0010011 SLTIU 
+// 0000000 rs2 rs1 011 rd 0110011 SLTU
+
+// imm[11:0] rs1 100 rd 0010011 XORI 
+// 0000000 rs2 rs1 100 rd 0110011 XOR 
+
+// imm[11:0] rs1 110 rd 0010011 ORI
+// 0000000 rs2 rs1 110 rd 0110011 OR 
+
+// imm[11:0] rs1 111 rd 0010011 ANDI 
+// 0000000 rs2 rs1 111 rd 0110011 AND
+
+// 0000000 shamt rs1 001 rd 0010011 SLLI 
+// 0000000 rs2 rs1 001 rd 0110011 SLL 
+
+// 0000000 shamt rs1 101 rd 0010011 SRLI 
+// 0000000 rs2 rs1 101 rd 0110011 SRL 
+
+// 0100000 shamt rs1 101 rd 0010011 SRAI 
+// 0100000 rs2 rs1 101 rd 0110011 SRA 

@@ -1,5 +1,16 @@
 `timescale 1ns/100ps
 
+// `define SUB 8
+// `define ADD 0
+// `define SLT 2
+// `define SLTU 3
+// `define XOR 4
+// `define OR 6
+// `define AND 7
+// `define SLL 1
+// `define SRL 5
+// `define SRA 13
+
 `define ALU_ADDI 0
 `define ALU_SLTI 1
 `define ALU_SLTIU 2
