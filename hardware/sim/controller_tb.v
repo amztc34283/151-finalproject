@@ -168,7 +168,7 @@ module controller_tb();
          @(posedge clk); \
          #(1); \
          `stage3a(name); \
-         @(posedge clk);
+         repeat (2) @(posedge clk); 
 
 
 
