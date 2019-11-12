@@ -11,7 +11,7 @@ module imm_gen_tb();
     reg [31:0] imm_in;
     reg [31:0] inst;
     wire [24:0] inst_in;
-    reg [1:0] select;
+    reg [2:0] select;
     wire [31:0] out;
 
     assign inst_in = inst[31:7];
