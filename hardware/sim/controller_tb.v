@@ -96,6 +96,23 @@ module controller_tb();
     reg RegWrEn_e;
     reg InstSel_e;
 
+    reg FA_1_e_2;
+    reg FB_1_e_2;
+    reg FA_2_e_2;
+    reg FB_2_e_2;
+    reg BrUn_e_2;
+    reg BSel_e_2;
+    reg ASel_e_2;
+    reg [3:0] ALUSel_e_2;
+    reg MemRW_e_2;
+    reg [2:0] LdSel_e_2;
+    reg [1:0] WBSel_e_2;
+    reg PCSel_e_2;
+    reg [1:0] SSel_e_2;
+    reg RegWrEn_e_2;
+    reg InstSel_e_2;
+
+
     `define stage1a(name, inst_input) \
         inst = inst_input; \
         if (FA_1 != FA_1_e) begin \
@@ -107,18 +124,61 @@ module controller_tb();
             $display("FA_1: actual %d, expected %d", FB_1, FB_1_e); \
         end 
 
-    `define stage3a(name) \
-        if (WBSel != WBSel_e) begin \
-            $display("%s Mem/WB Stage failed", name); \
-            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e); \
+    `define stage1b(name, inst_input) \
+        inst = inst_input; \
+        if (FA_1 != FA_1_e_2) begin \
+            $display("%s IF/D failed", name); \
+            $display("FA_1: actual %d, expected %d", FA_1, FA_1_e_2); \
         end \
-        if (RegWrEn != RegWrEn_e) begin \
-            $display("%s Mem/WB Stage failed", name); \
-            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e); \
+        if (FB_1 != FB_1_e_2) begin \
+            $display("%s IF/D failed", name); \
+            $display("FA_1: actual %d, expected %d", FB_1, FB_1_e_2); \
         end 
-      
- 
+
     `define stage2a(name) \
+         if (FA_2 != FA_2_e_2) begin \
+             $display("%s Execute failed", name); \
+             $display("FA_2: actual %d, expected %d", FA_2, FA_2_e_2); \
+         end \
+         if (FB_2 != FB_2_e_2) begin \
+             $display("%s Execute failed", name); \
+             $display("FB_2: actual %d, expected %d", FB_2, FB_2_e_2); \
+         end \
+         if (BrUn != BrUn_e_2) begin \
+             $display("%s Execute failed", name); \
+             $display("BrUn: actual %d, expected %d", BrUn, BrUn_e_2); \
+         end \
+         if (ASel != ASel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("ASel: actual %d, expected %d", ASel, ASel_e_2); \
+         end \
+         if (BSel != BSel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("BSel: actual %d, expected %d", BSel, BSel_e_2); \
+         end \
+         if (ALUSel != ALUSel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("ALUSel: actual %d, expected %d", ALUSel, ALUSel_e_2); \
+         end  \
+         if (MemRW != MemRW_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("MemRW: actual %d, expected %d", MemRW, MemRW_e_2); \
+         end \
+         if (PCSel != PCSel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("PCSel: actual %d, expected %d", PCSel, PCSel_e_2); \
+         end \
+         if (SSel != SSel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("SSel: actual %d, expected %d", SSel, SSel_e_2); \
+         end \
+         if (InstSel != InstSel_e_2) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("InstSel: actual %d, expected %d", InstSel, InstSel_e_2); \
+         end \
+ 
+ 
+    `define stage2b(name) \
          if (FA_2 != FA_2_e) begin \
              $display("%s Execute failed", name); \
              $display("FA_2: actual %d, expected %d", FA_2, FA_2_e); \
@@ -159,18 +219,39 @@ module controller_tb();
              $display("%s Execute Stage failed", name); \
              $display("InstSel: actual %d, expected %d", InstSel, InstSel_e); \
          end \
+ 
+     `define stage3a(name) \
+        if (WBSel != WBSel_e_2) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e_2); \
+        end \
+        if (RegWrEn != RegWrEn_e) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e_2); \
+        end 
+  
+       `define stage3b(name) \
+        if (WBSel != WBSel_e_2) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e_2); \
+        end \
+        if (RegWrEn != RegWrEn_e) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e_2); \
+        end     
            
- `define ctrl_test(name, inst_input) \
-        `stage1a(name, inst_input); \
-         @(posedge clk); \
-         #(1); \
-         `stage2a(name); \
-         @(posedge clk); \
-         #(1); \
-         `stage3a(name); \
-         repeat (2) @(posedge clk); 
+     `define ctrl_test(name, inst_input) \
+            `stage1a(name, inst_input); \
+             @(posedge clk); \
+             #(1); \
+             `stage2a(name); \
+             @(posedge clk); \
+             #(1); \
+             `stage3a(name); \
+             repeat (2) @(posedge clk); 
 
 
+    `define forward2_test(name1, inst_input1, name2, inst_input2); 
 
     initial begin
     // LOAD INSTRUCTIONS
