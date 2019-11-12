@@ -3,6 +3,8 @@
 `define I_TYPE 1
 `define S_TYPE 2
 `define B_TYPE 3
+`define U_TYPE 4
+`define J_TYPE 5
 
 
 module imm_gen_tb();
@@ -236,6 +238,160 @@ module imm_gen_tb();
         #(1)
         if (out != (2**11 / 2) & (2**32 - 2))
             $display("B type failed; output=%d, expected=%d", out,  2**11 / 2);
+
+
+        // Test J Type
+        #(5);
+        select = `J_TYPE;
+        inst = $random;
+        #(1)
+        imm_in = 2**19;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 2**19 - 1;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 2**18;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = -2**18;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = -2**19;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = -2**19 + 1;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 1;
+        inst[31] = imm_in[20];
+        inst[30:21] = imm_in[10:1];
+        inst[20] = imm_in[11];
+        inst[19:12] = imm_in[19:12];
+        #(1)
+        if (out != imm_in)
+            $display("J type failed; output=%d, expected=%d", out, imm_in);
+
+
+        // Test U Type
+        #(5);
+        select = `J_TYPE;
+        inst = $random;
+        #(1)
+        imm_in = 2**31 - 1;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = -2**30 - 1;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 1000;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = -1000;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 2**20;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 2**19;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
+        #(5)
+        inst = $random;
+        #(1)
+        imm_in = 2**19 - 1;
+        inst[31:12] = imm_in[31:12];
+        #(1)
+        if (out != {imm_in[31:12], {12{1'b0}}})
+            $display("U type failed; output=%d, expected=%d", out, imm_in);
+
 
         $finish();
 
