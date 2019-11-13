@@ -42,7 +42,7 @@ module controller(
     input BrEq,
     input BrLt,
     output reg PCSel,
-    output reg InstSel,
+    output reg [1:0] InstSel,
     output reg RegWrEn,
     output reg BrUn,
     output reg BSel,
@@ -88,7 +88,8 @@ module controller(
                        ((mem_wb_state != `BRANCH) && 
                        (mem_wb_state != `STORE)) && 
                    ((inst[19:15] != `LUI) && (inst[19:15] != `AUIPC) && 
-                   (inst[19:15] != `JAL) && (inst[19:15] != `CSRWI));
+                   (inst[19:15] != `JAL) && (inst[19:15] != `CSRWI) && 
+                   (inst[19:15] != 0));
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
@@ -98,7 +99,7 @@ module controller(
                    ((inst[19:15] != `LUI) && (inst[19:15] != `AUIPC) && 
                    (inst[19:15] != `JAL) && (inst[19:15] != `CSRWI) && 
                    (inst[19:15] != `JALR) && (inst[19:15] != `LOAD) && 
-                   (inst[19:15] != `I));
+                   (inst[19:15] != `I) && (inst[19:15] != 0));
 
     always @(posedge clk) begin
         ex_inst_reg <= inst;
@@ -166,7 +167,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            InstSel = 2;
             PCSel = 1;
         end
         `JAL: begin

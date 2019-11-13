@@ -40,7 +40,7 @@ module controller_tb();
     reg clk = 0;
     reg [31:0] inst = 0;
     wire PCSel;
-    wire InstSel;
+    wire [1:0] InstSel;
     wire RegWrEn;
     wire BrUn;
     reg BrEq_in = 0;
@@ -96,7 +96,7 @@ module controller_tb();
     reg PCSel_e;
     reg [1:0] SSel_e;
     reg RegWrEn_e;
-    reg InstSel_e;
+    reg [1:0] InstSel_e;
 
     reg FA_1_e_b;
     reg FB_1_e_b;
@@ -112,7 +112,7 @@ module controller_tb();
     reg PCSel_e_b;
     reg [1:0] SSel_e_b;
     reg RegWrEn_e_b;
-    reg InstSel_e_b;
+    reg [1:0] InstSel_e_b;
     reg BrEq_in_b = 0;
     reg BrLT_in_b = 0;
 
@@ -256,11 +256,14 @@ module controller_tb();
             `stage1a(name, inst_input); \
              @(posedge clk); \
              #(1); \
+             if (InstSel == 2) \
+                inst = 32'h00000013; \
+             #(1); \
              `stage2a(name); \
              @(posedge clk); \
              #(1); \
              `stage3a(name); \
-             repeat (3) @(posedge clk); 
+             repeat (2) @(posedge clk); 
 
     // Macro for testing adjacent forwarding instructions
     // 1st inst enters IF/D
@@ -286,7 +289,7 @@ module controller_tb();
         @(posedge clk); \
         #(1); \
         `stage3a(name_a); \
-         `stage2b(name_b); \
+        `stage2b(name_b); \
         @(posedge clk); \
         `stage3b(name_b); \
         repeat(2) @(posedge clk); 
@@ -606,6 +609,8 @@ module controller_tb();
 
     // FORWARDING TESTS, ADJCACENT CASE
     // ALU -> ALU Forwarding
+    // add x2 x3 x1
+    // add x4 x2 x3
     // Expected Control Signals for First Inst
     FA_1_e = 0;
     FB_1_e = 0;
@@ -628,7 +633,7 @@ module controller_tb();
     // Expected Control Signals for 2nd Inst
     FA_1_e_b = 0;
     FB_1_e_b = 0;
-    FA_2_e_b = 0;
+    FA_2_e_b = 1;
     FB_2_e_b = 0;
     BrUn_e_b = 1'bx;
     BrEq_in_b = 1'bx;
