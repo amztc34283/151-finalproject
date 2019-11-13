@@ -1,5 +1,5 @@
 `timescale 1ns/100ps
-`define CLK_PERIOD 8
+`define CLK_PERIOD 12
 
 `define LOAD 0
 `define STORE 8
@@ -25,16 +25,16 @@
 `define LB_FUNC3 0
 `define LH_FUNC3 1
 `define LW_FUNC3 2
-`define LBU_FUNC 4
-`define LHU_FUNC 5
+`define LBU_FUNC3 4
+`define LHU_FUNC3 5
+`define LOAD_X 7
 
 `define SB_FUNC3 0
 `define SH_FUNC3 1
 `define SW_FUNC3 2
+`define STORE_X 3
 
 module controller_tb();
-
-    always #(`CLK_PERIOD/2) clk <= ~clk;
 
     reg rst = 0;
     reg clk = 0;
@@ -56,6 +56,8 @@ module controller_tb();
     wire FB_2;
     wire [2:0] LdSel;
     wire [1:0] SSel;
+
+    always #(`CLK_PERIOD/2) clk <= ~clk;
 
     controller DUT_controller (
         .rst(rst),
@@ -96,21 +98,23 @@ module controller_tb();
     reg RegWrEn_e;
     reg InstSel_e;
 
-    reg FA_1_e_2;
-    reg FB_1_e_2;
-    reg FA_2_e_2;
-    reg FB_2_e_2;
-    reg BrUn_e_2;
-    reg BSel_e_2;
-    reg ASel_e_2;
-    reg [3:0] ALUSel_e_2;
-    reg MemRW_e_2;
-    reg [2:0] LdSel_e_2;
-    reg [1:0] WBSel_e_2;
-    reg PCSel_e_2;
-    reg [1:0] SSel_e_2;
-    reg RegWrEn_e_2;
-    reg InstSel_e_2;
+    reg FA_1_e_b;
+    reg FB_1_e_b;
+    reg FA_2_e_b;
+    reg FB_2_e_b;
+    reg BrUn_e_b;
+    reg BSel_e_b;
+    reg ASel_e_b;
+    reg [3:0] ALUSel_e_b;
+    reg MemRW_e_b;
+    reg [2:0] LdSel_e_b;
+    reg [1:0] WBSel_e_b;
+    reg PCSel_e_b;
+    reg [1:0] SSel_e_b;
+    reg RegWrEn_e_b;
+    reg InstSel_e_b;
+    reg BrEq_in_b = 0;
+    reg BrLT_in_b = 0;
 
 
     `define stage1a(name, inst_input) \
@@ -126,59 +130,59 @@ module controller_tb();
 
     `define stage1b(name, inst_input) \
         inst = inst_input; \
-        if (FA_1 != FA_1_e_2) begin \
+        if (FA_1 != FA_1_e_b) begin \
             $display("%s IF/D failed", name); \
-            $display("FA_1: actual %d, expected %d", FA_1, FA_1_e_2); \
+            $display("FA_1: actual %d, expected %d", FA_1, FA_1_e_b); \
         end \
-        if (FB_1 != FB_1_e_2) begin \
+        if (FB_1 != FB_1_e_b) begin \
             $display("%s IF/D failed", name); \
-            $display("FA_1: actual %d, expected %d", FB_1, FB_1_e_2); \
+            $display("FA_1: actual %d, expected %d", FB_1, FB_1_e_b); \
         end 
 
-    `define stage2a(name) \
-         if (FA_2 != FA_2_e_2) begin \
-             $display("%s Execute failed", name); \
-             $display("FA_2: actual %d, expected %d", FA_2, FA_2_e_2); \
-         end \
-         if (FB_2 != FB_2_e_2) begin \
-             $display("%s Execute failed", name); \
-             $display("FB_2: actual %d, expected %d", FB_2, FB_2_e_2); \
-         end \
-         if (BrUn != BrUn_e_2) begin \
-             $display("%s Execute failed", name); \
-             $display("BrUn: actual %d, expected %d", BrUn, BrUn_e_2); \
-         end \
-         if (ASel != ASel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("ASel: actual %d, expected %d", ASel, ASel_e_2); \
-         end \
-         if (BSel != BSel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("BSel: actual %d, expected %d", BSel, BSel_e_2); \
-         end \
-         if (ALUSel != ALUSel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("ALUSel: actual %d, expected %d", ALUSel, ALUSel_e_2); \
-         end  \
-         if (MemRW != MemRW_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("MemRW: actual %d, expected %d", MemRW, MemRW_e_2); \
-         end \
-         if (PCSel != PCSel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("PCSel: actual %d, expected %d", PCSel, PCSel_e_2); \
-         end \
-         if (SSel != SSel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("SSel: actual %d, expected %d", SSel, SSel_e_2); \
-         end \
-         if (InstSel != InstSel_e_2) begin \
-             $display("%s Execute Stage failed", name); \
-             $display("InstSel: actual %d, expected %d", InstSel, InstSel_e_2); \
-         end \
- 
- 
     `define stage2b(name) \
+         if (FA_2 != FA_2_e_b) begin \
+             $display("%s Execute failed", name); \
+             $display("FA_2: actual %d, expected %d", FA_2, FA_2_e_b); \
+         end \
+         if (FB_2 != FB_2_e_b) begin \
+             $display("%s Execute failed", name); \
+             $display("FB_2: actual %d, expected %d", FB_2, FB_2_e_b); \
+         end \
+         if (BrUn != BrUn_e_b) begin \
+             $display("%s Execute failed", name); \
+             $display("BrUn: actual %d, expected %d", BrUn, BrUn_e_b); \
+         end \
+         if (ASel != ASel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("ASel: actual %d, expected %d", ASel, ASel_e_b); \
+         end \
+         if (BSel != BSel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("BSel: actual %d, expected %d", BSel, BSel_e_b); \
+         end \
+         if (ALUSel != ALUSel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("ALUSel: actual %d, expected %d", ALUSel, ALUSel_e_b); \
+         end  \
+         if (MemRW != MemRW_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("MemRW: actual %d, expected %d", MemRW, MemRW_e_b); \
+         end \
+         if (PCSel != PCSel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("PCSel: actual %d, expected %d", PCSel, PCSel_e_b); \
+         end \
+         if (SSel != SSel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("SSel: actual %d, expected %d", SSel, SSel_e_b); \
+         end \
+         if (InstSel != InstSel_e_b) begin \
+             $display("%s Execute Stage failed", name); \
+             $display("InstSel: actual %d, expected %d", InstSel, InstSel_e_b); \
+         end \
+ 
+ 
+    `define stage2a(name) \
          if (FA_2 != FA_2_e) begin \
              $display("%s Execute failed", name); \
              $display("FA_2: actual %d, expected %d", FA_2, FA_2_e); \
@@ -221,25 +225,33 @@ module controller_tb();
          end \
  
      `define stage3a(name) \
-        if (WBSel != WBSel_e_2) begin \
+        if (WBSel != WBSel_e) begin \
             $display("%s Mem/WB Stage failed", name); \
-            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e_2); \
+            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e); \
         end \
         if (RegWrEn != RegWrEn_e) begin \
             $display("%s Mem/WB Stage failed", name); \
-            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e_2); \
-        end 
-  
+            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e); \
+        end \
+        if (LdSel != LdSel_e) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("LdSel: actual %d, expected %d", LdSel, LdSel_e); \
+        end   
+        
        `define stage3b(name) \
-        if (WBSel != WBSel_e_2) begin \
+        if (WBSel != WBSel_e_b) begin \
             $display("%s Mem/WB Stage failed", name); \
-            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e_2); \
+            $display("WBSel: actual %d, expected %d", WBSel, WBSel_e_b); \
         end \
-        if (RegWrEn != RegWrEn_e) begin \
+        if (RegWrEn != RegWrEn_e_b) begin \
             $display("%s Mem/WB Stage failed", name); \
-            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e_2); \
-        end     
-           
+            $display("RegWrEn: actual %d, expected %d", RegWrEn, RegWrEn_e_b); \
+        end     \
+        if (LdSel != LdSel_e_b) begin \
+            $display("%s Mem/WB Stage failed", name); \
+            $display("LdSel: actual %d, expected %d", LdSel, LdSel_e_b); \
+        end   
+                   
      `define ctrl_test(name, inst_input) \
             `stage1a(name, inst_input); \
              @(posedge clk); \
@@ -248,10 +260,40 @@ module controller_tb();
              @(posedge clk); \
              #(1); \
              `stage3a(name); \
-             repeat (2) @(posedge clk); 
+             repeat (3) @(posedge clk); 
 
+    // Macro for testing adjacent forwarding instructions
+    // 1st inst enters IF/D
+    // 1st inst enters ex, 2nd inst enters IF/D
+    // 1st inst enters mem/wb, 2nd inst enters ex
+    // 2nd inst enters ex
 
-    `define forward2_test(name1, inst_input1, name2, inst_input2); 
+    // stage1a
+    // posedge clk
+    // stage2a
+    // stage1b
+    // posedge clk
+    // stage3a
+    // stage2b
+    // posedge clk
+    // stage3b
+    `define forward2_test(name_a, inst_input_a, name_b, inst_input_b, BrEq_in_B, BrLt_in_B) \
+        `stage1a(name_a, inst_input_a); \
+        @(posedge clk); \
+        #(1); \
+        `stage2a(name_a); \
+        `stage1b(name_b, inst_input_b); \
+        @(posedge clk); \
+        #(1); \
+        `stage3a(name_a); \
+         `stage2b(name_b); \
+        @(posedge clk); \
+        `stage3b(name_b); \
+        repeat(2) @(posedge clk); 
+
+// Put this before stage2b
+//        BrEq_in = BrEq_in_B; 
+//        BrLt_in = BrLt_in_B;
 
     initial begin
     // LOAD INSTRUCTIONS
@@ -269,7 +311,7 @@ module controller_tb();
     LdSel_e = `LW_FUNC3;
     WBSel_e = 0;
     PCSel_e = 0;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 1;
     InstSel_e = 2'b00;
 
@@ -278,11 +320,19 @@ module controller_tb();
 
     // lh x2 0(x3)
     LdSel_e = `LH_FUNC3;
-    `ctrl_test("lw", 32'h00019103);
+    `ctrl_test("lh", 32'h00019103);
 
     // lb x2 0(x3)
     LdSel_e = `LB_FUNC3;
-    `ctrl_test("lw", 32'h00018103);
+    `ctrl_test("lb", 32'h00018103);
+
+    // lhu x2 0(x3)
+    LdSel_e = `LHU_FUNC3;
+    `ctrl_test("lhu", 32'h0001d103);
+
+    // lbu x2 0(x3)
+    LdSel_e = `LBU_FUNC3;
+    `ctrl_test("lbu", 32'h0001c103);
     
     // STORE INSTRUCTIONS
     FA_1_e = 0;
@@ -296,7 +346,7 @@ module controller_tb();
     ASel_e = 0;
     ALUSel_e = `ADD;
     MemRW_e = 1;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 2'bxx;
     PCSel_e = 0;
     SSel_e = `SW_FUNC3;
@@ -326,10 +376,10 @@ module controller_tb();
     ASel_e = 0;
     ALUSel_e = `ADD;
     MemRW_e = 0;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 1;
     PCSel_e = 0;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
     
@@ -385,10 +435,10 @@ module controller_tb();
     ASel_e = 0;
     ALUSel_e = `ADD;
     MemRW_e = 0;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 1;
     PCSel_e = 0;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
 
@@ -437,10 +487,10 @@ module controller_tb();
     ASel_e = 1;
     ALUSel_e = `ADD;
     MemRW_e = 0;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 1'bx;
     PCSel_e = 1;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 0; 
     InstSel_e = 2'b10;
 
@@ -507,9 +557,9 @@ module controller_tb();
     ASel_e = 1;
     ALUSel_e = `ADD;
     MemRW_e = 0;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 2'b10;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
 
@@ -537,10 +587,10 @@ module controller_tb();
     ASel_e = 0;
     ALUSel_e = `ADD;
     MemRW_e = 0;
-    LdSel_e = 2'bxx;
+    LdSel_e = `LOAD_X;
     WBSel_e = 1;
     PCSel_e = 0;
-    SSel_e = 2'bxx;
+    SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
 
@@ -553,6 +603,48 @@ module controller_tb();
     BSel_e = 1;
     ALUSel_e = `ADD;
     `ctrl_test("auipc", 32'h003e8117);
+
+    // FORWARDING TESTS, ADJCACENT CASE
+    // ALU -> ALU Forwarding
+    // Expected Control Signals for First Inst
+    FA_1_e = 0;
+    FB_1_e = 0;
+    FA_2_e = 0;
+    FB_2_e = 0;
+    BrUn_e = 1'bx;
+    BrEq_in = 1'bx;
+    BrLt_in = 1'bx;
+    BSel_e = 0;
+    ASel_e = 0;
+    ALUSel_e = `ADD;
+    MemRW_e = 0;
+    LdSel_e = `LOAD_X;
+    WBSel_e = 1;
+    PCSel_e = 0;
+    SSel_e = `STORE_X;
+    RegWrEn_e = 1; 
+    InstSel_e = 2'b00;
+
+    // Expected Control Signals for 2nd Inst
+    FA_1_e_b = 0;
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    BrUn_e_b = 1'bx;
+    BrEq_in_b = 1'bx;
+    BrLT_in_b = 1'bx;
+    BSel_e_b = 0;
+    ASel_e_b = 0;
+    ALUSel_e_b = `ADD;
+    MemRW_e_b = 0;
+    LdSel_e_b = `LOAD_X;
+    WBSel_e_b = 1;
+    PCSel_e_b = 0;
+    SSel_e_b = `STORE_X;
+    RegWrEn_e_b = 1; 
+    InstSel_e_b = 2'b00;
+
+    `forward2_test("add_a", 32'h00118133, "add_b", 32'h00310233, BrEq_in_b, BrLt_in_b);
 
     $finish();
 

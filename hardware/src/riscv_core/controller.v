@@ -108,19 +108,33 @@ module controller(
         mem_wb_state <= ex_state;
     end
 
+    // We may wish to refactor this to use continuously assign
+    // the control signals based on the opcode, such an 
+    // implementation should be more resource efficient
+
+    // This representation lets us test the correctness
+    // of the control signals values more easily
+
+    // If a control signal is not relevant for a particular
+    // instruction type, we set it to an arbitrary value
+    // to avoid xxx during synthesis-- the arbitrary value
+    // should not conflict with used values
     always @(*) begin
        case (ex_state) 
         `LOAD: begin
             ASel = 0;
             BSel = 1;
+            BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
             MemRW = 1;
+            SSel = 3; // Not SW, SB, or SH
             InstSel = 0;
             PCSel = 0;
         end
         `STORE: begin
             ASel = 0;
             BSel = 1;
+            BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
             MemRW = 1;
             SSel = mem_wb_inst_reg[13:12];
@@ -130,8 +144,11 @@ module controller(
         `BRANCH: begin
             ASel = 1;
             BSel = 1;
-            ALUSel = `ADD;
             BrUn = mem_wb_inst_reg[14:13] == 2'b11 ? 1 : 0; 
+            ALUSel = `ADD;
+            MemRW = 0;
+            SSel = 3;
+            InstSel = 2;
             // This encoding can be minimized further
             case (mem_wb_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 0;
@@ -141,55 +158,65 @@ module controller(
                 `BLTU: PCSel = BrLt ? 1 : 0;
                 `BGEU: PCSel = !BrLt ? 1 : 0; 
             endcase
-            InstSel = 2;
-            MemRW = 0;
         end
         `JALR: begin
             ASel = 0;
             BSel = 1;
+            BrUn = 0;
             ALUSel = `ADD;
-            PCSel = 1;
             MemRW = 0;
+            SSel = 3;
             InstSel = 0;
+            PCSel = 1;
         end
         `JAL: begin
             ASel = 1;
             BSel = 1;
+            BrUn = 0;
             ALUSel = `ADD;
-            PCSel = 1;
             MemRW = 0;
+            SSel = 3;
+            PCSel = 1;
             InstSel = 2;
         end
         `R: begin
             ASel = 0;
             BSel = 0;
+            BrUn = 0;
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
             MemRW = 0;
+            SSel = 3;
             InstSel = 0;
             PCSel = 0;
         end
         `I: begin
             ASel = 0;
             BSel = 1;
+            BrUn = 0;
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
             MemRW = 0;
+            SSel = 3;
             InstSel = 0;
             PCSel = 0;
          end
         `AUIPC: begin 
             ASel = 1;
             BSel = 1;
+            BrUn = 0;
             ALUSel = `ADD;
             MemRW = 0;
+            SSel = 3;
             InstSel = 0;
             PCSel = 0;
          end
         `LUI: begin
             ASel = 0;
             BSel = 1;
+            BrUn = 0;
             ALUSel = `B;
-            InstSel = 0;
             MemRW = 0;
+            SSel = 3;
+            InstSel = 0;
             PCSel = 0;
         end
         endcase
@@ -203,33 +230,42 @@ module controller(
             RegWrEn = 1;
         end
         `STORE: begin
+            LdSel = 7;
+            WBSel = 0; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
         end
         `BRANCH: begin
+            LdSel = 7;
             WBSel = 0;
             RegWrEn = 0;
         end
         `JALR: begin
+            LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
         end
         `JAL: begin
+            LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
         end
         `R: begin
+            LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
         end
         `I: begin
+            LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
         end
         `AUIPC: begin
+            LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
         end
         `LUI: begin 
+            LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
         end
