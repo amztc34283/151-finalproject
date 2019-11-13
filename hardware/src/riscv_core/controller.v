@@ -27,6 +27,7 @@
 `define LW_FUNC3 2
 `define LBU_FUNC 4
 `define LHU_FUNC 5
+`define LOAD_X 7
 
 `define BEQ 0
 `define BNE 1
@@ -34,6 +35,8 @@
 `define BGE 5
 `define BLTU 6
 `define BGEU 7
+
+`define WBSel_X 0
 
 module controller(
     input rst,
@@ -87,19 +90,19 @@ module controller(
    assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) && 
                        ((mem_wb_state != `BRANCH) && 
                        (mem_wb_state != `STORE)) && 
-                   ((inst[19:15] != `LUI) && (inst[19:15] != `AUIPC) && 
-                   (inst[19:15] != `JAL) && (inst[19:15] != `CSRWI) && 
-                   (inst[19:15] != 0));
+                   ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) && 
+                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) && 
+                   (inst[6:2] != 0));
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 =   (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) && 
+   assign FB_1 =   (mem_wb_inst_reg[11:7] == inst[24:20]) && 
                            ((mem_wb_state != `BRANCH) && 
                            (mem_wb_state != `STORE)) && 
-                   ((inst[19:15] != `LUI) && (inst[19:15] != `AUIPC) && 
-                   (inst[19:15] != `JAL) && (inst[19:15] != `CSRWI) && 
-                   (inst[19:15] != `JALR) && (inst[19:15] != `LOAD) && 
-                   (inst[19:15] != `I) && (inst[19:15] != 0));
+                   ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) && 
+                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) && 
+                   (inst[6:2] != `JALR) && (inst[6:2] != `LOAD) && 
+                   (inst[6:2] != `I));
 
     always @(posedge clk) begin
         ex_inst_reg <= inst;
@@ -138,20 +141,20 @@ module controller(
             BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
             MemRW = 1;
-            SSel = mem_wb_inst_reg[13:12];
+            SSel = ex_inst_reg[13:12];
             InstSel = 0;
             PCSel = 0;
         end
         `BRANCH: begin
             ASel = 1;
             BSel = 1;
-            BrUn = mem_wb_inst_reg[14:13] == 2'b11 ? 1 : 0; 
+            BrUn = ex_inst_reg[14:13] == 2'b11 ? 1 : 0; 
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
             InstSel = 2;
             // This encoding can be minimized further
-            case (mem_wb_inst_reg[14:12])
+            case (ex_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 0;
                 `BNE: PCSel = BrEq ? 0 : 1;
                 `BLT: PCSel = BrLt ? 1 : 0;
@@ -232,12 +235,12 @@ module controller(
         end
         `STORE: begin
             LdSel = 7;
-            WBSel = 0; // Doesn't matter, since RegWrEn == 0
+            WBSel = `WBSel_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
         end
         `BRANCH: begin
             LdSel = 7;
-            WBSel = 0;
+            WBSel = `WBSel_X;
             RegWrEn = 0;
         end
         `JALR: begin
