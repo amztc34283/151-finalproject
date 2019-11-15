@@ -58,6 +58,7 @@ module controller_tb();
     wire FB_2;
     wire [2:0] LdSel;
     wire [1:0] SSel;
+    wire [2:0] ImmSel; // Add some unit tests for this
 
     always #(`CLK_PERIOD/2) clk <= ~clk;
 
@@ -70,6 +71,7 @@ module controller_tb();
         .PCSel(PCSel),
         .InstSel(InstSel),
         .RegWrEn(RegWrEn),
+        .ImmSel(ImmSel)
         .BrUn(BrUn),
         .BSel(BSel),
         .ASel(ASel),

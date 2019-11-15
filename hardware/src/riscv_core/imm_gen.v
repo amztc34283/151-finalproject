@@ -3,6 +3,7 @@
 `define B_TYPE 3
 `define U_TYPE 4
 `define J_TYPE 5
+`define X_TYPE 6
 
 module imm_gen (
     input [24:0] inst_in,
@@ -17,6 +18,7 @@ module imm_gen (
             `B_TYPE: imm_out = {{10{inst_in[24]}}, inst_in[0], inst_in[23:18], inst_in[4:1], 1'b0};
             `U_TYPE: imm_out = {inst_in[24:5], {12{1'b1}}};
             `J_TYPE: imm_out = {{12{inst_in[24]}}, inst_in[12:5], inst_in[13], inst_in[23:14] , 1'b0};
+            default: imm_out = 0;
         endcase
     end
 

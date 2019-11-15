@@ -38,6 +38,14 @@
 
 `define WBSel_X 0
 
+// imm_gen control signals
+`define I_TYPE 1
+`define S_TYPE 2
+`define B_TYPE 3
+`define U_TYPE 4
+`define J_TYPE 5
+`define X_TYPE 6
+
 module controller(
     input rst,
     input clk,
@@ -47,6 +55,7 @@ module controller(
     output reg PCSel,
     output reg [1:0] InstSel,
     output reg RegWrEn,
+    output reg [2:0] ImmSel,
     output reg BrUn,
     output reg BSel,
     output reg ASel,
@@ -134,6 +143,7 @@ module controller(
             SSel = 3; // Not SW, SB, or SH
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `I_TYPE;
         end
         `STORE: begin
             ASel = 0;
@@ -144,6 +154,7 @@ module controller(
             SSel = ex_inst_reg[13:12];
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `S_TYPE;
         end
         `BRANCH: begin
             ASel = 1;
@@ -162,6 +173,7 @@ module controller(
                 `BLTU: PCSel = BrLt ? 1 : 0;
                 `BGEU: PCSel = !BrLt ? 1 : 0; 
             endcase
+            ImmSel = `B_TYPE;
         end
         `JALR: begin
             ASel = 0;
@@ -172,6 +184,7 @@ module controller(
             SSel = 3;
             InstSel = 2;
             PCSel = 1;
+            ImmSel = `I_TYPE;
         end
         `JAL: begin
             ASel = 1;
@@ -182,6 +195,7 @@ module controller(
             SSel = 3;
             PCSel = 1;
             InstSel = 2;
+            ImmSel = `J_TYPE;
         end
         `R: begin
             ASel = 0;
@@ -192,6 +206,7 @@ module controller(
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `X_TYPE;
         end
         `I: begin
             ASel = 0;
@@ -202,6 +217,7 @@ module controller(
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `I_TYPE;
          end
         `AUIPC: begin 
             ASel = 1;
@@ -212,6 +228,7 @@ module controller(
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `U_TYPE;
          end
         `LUI: begin
             ASel = 0;
@@ -222,6 +239,7 @@ module controller(
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
+            ImmSel = `U_TYPE;
         end
         endcase
     end
