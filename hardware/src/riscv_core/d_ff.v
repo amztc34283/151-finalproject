@@ -1,4 +1,4 @@
-module imm_gen #(parameter BUS_WIDTH = 32) (
+module d_ff #(parameter BUS_WIDTH = 32) (
     input [`BUS_WIDTH - 1:0] d,
     input clk,
     input rst,
