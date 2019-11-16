@@ -1,0 +1,15 @@
+hardware/src/riscv_core/controller.v
+hardware/src/riscv_core/d_ff.v
+hardware/src/riscv_core/pc_adder.v
+hardware/src/riscv_core/twoonemux.v
+hardware/src/riscv_core/threeonemux.v
+hardware/src/riscv_core/reg_file.v
+hardware/src/riscv_core/imm_gen.v
+hardware/src/riscv_core/branch_comp.v
+hardware/src/memories/bios_mem.v
+hardware/src/riscv_core/alu.v
+hardware/src/riscv_core/s_sel.v
+hardware/src/memories/dmem.v
+hardware/src/riscv_core/ld_sel.v
+hardware/src/riscv_core/Riscv151.v
+hardware/sim/assembly_testbench.v

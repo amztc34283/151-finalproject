@@ -3,7 +3,7 @@
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR REGFILE ARRAY INDEXED WITH reg_number */
 `define REGFILE_ARRAY_PATH CPU.rf.registers[reg_number]
 
-module assembly_testbench();
+module assembly_jtype_testbench();
     reg clk, rst;
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
@@ -64,15 +64,11 @@ module assembly_testbench();
             begin
                 // Your processor should begin executing the code in /software/assembly_tests/start.s
 
-                // Test ADD
+                // Test JAL
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
 
-                // Test BEQ
-                wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 2
-                check_reg(1, 32'd500, 2);               // Verify that x1 contains 500
-                check_reg(2, 32'd100, 3);               // Verify that x2 contains 100
-                $display("ALL ASSEMBLY TESTS PASSED");
+                $display("ALL BASIC J-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end
             begin

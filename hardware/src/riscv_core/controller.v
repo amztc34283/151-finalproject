@@ -141,7 +141,8 @@ module controller(
             ALUSel = `ADD;
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `I_TYPE;
         end
@@ -152,7 +153,8 @@ module controller(
             ALUSel = `ADD;
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `S_TYPE;
         end
@@ -204,7 +206,8 @@ module controller(
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `X_TYPE;
         end
@@ -215,7 +218,8 @@ module controller(
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `I_TYPE;
          end
@@ -226,7 +230,8 @@ module controller(
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `U_TYPE;
          end
@@ -237,7 +242,8 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
             PCSel = 0;
             ImmSel = `U_TYPE;
         end

@@ -5,6 +5,7 @@
 RISCV_PACKAGE := riscv64-linux-gnu
 RISCV_DEFAULT := riscv64-unknown-elf
 RISCV_DEFAULT_PRESENT := $(shell command -v $(RISCV_DEFAULT)-gcc 2> /dev/null)
+# RISCV_DEFAULT_PRESENT := $(shell command -v $(RISCV_DEFAULT-gcc) 2> /dev/null)
 
 ifdef RISCV_DEFAULT_PRESENT
     RISCV := $(RISCV_DEFAULT)

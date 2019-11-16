@@ -10,6 +10,5 @@ module d_ff #(parameter BUS_WIDTH = 32) (
             q <= 0;
         else
             q <= d;
-
-    end
+        end
 endmodule

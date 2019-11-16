@@ -79,7 +79,7 @@ module Riscv151 #(
     d_ff PC_if_ff (
         .d(PC_next_d),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(PC_next_q)
     );
 
@@ -96,12 +96,14 @@ module Riscv151 #(
         .sel(PCSel_signal),
         .s0(pc_plus_4),
         .s1(ALU_out),
+        .rst(rst),
         .out(PC_next_d)
     );
 
     wire [31:0] bios_addra, bios_addrb;
     wire [31:0] bios_douta, bios_doutb;
     wire bios_ena, bios_enb;
+    assign bios_ena = 1;
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
@@ -131,13 +133,6 @@ module Riscv151 #(
         .ra1(inst[19:15]), .ra2(inst[24:20]), .wa(inst[11:7]),
         .wd(wd),
         .rd1(rd1), .rd2(rd2)
-    );
-
-    wire [31:0] imm_out;
-    imm_gen imm_gen(
-        .inst_in(inst[31:7]),
-        .imm_sel(ImmSel_signal),
-        .imm_out(imm_out)
     );
 
     /********************* Before second pipeline register is implemented above *******************/
@@ -179,15 +174,22 @@ module Riscv151 #(
         .q(rd2_ex)
     );
 
-    wire [31:0] imm_gen_Bsel_ex;
+    wire [31:0] imm_gen_ex;
     d_ff imm_gen_ex_ff (
-        .d(imm_out),
+        .d(inst[31:7]),
         .clk(clk),
         .rst(),
-        .q(imm_gen_Bsel_ex)
+        .q(imm_gen_ex)
     );
 
     /******************************* All pipeline register between IF and EX above ********************************/
+
+    wire [31:0] imm_bsel_out;
+    imm_gen imm_gen(
+        .inst_in(imm_gen_ex),
+        .imm_sel(ImmSel_signal),
+        .imm_out(imm_bsel_out)
+    );
 
     branch_comp branch_compar (
         .ra1(rd1_ex),
@@ -202,13 +204,15 @@ module Riscv151 #(
         .sel(ASel_signal),
         .s0(rd1_ex),
         .s1(PC_Asel_ex),
+        .rst(rst),
         .out(Asel_out));
 
     wire [31:0] Bsel_out;
     twoonemux Bsel_mux(
         .sel(BSel_signal),
         .s0(rd2_ex),
-        .s1(imm_gen_Bsel_ex),
+        .s1(imm_bsel_out),
+        .rst(rst),
         .out(Bsel_out));
 
     alu ALU (
@@ -274,19 +278,19 @@ module Riscv151 #(
     );
 
     // On-chip UART
-    uart #(
-        .CLOCK_FREQ(CPU_CLOCK_FREQ)
-    ) on_chip_uart (
-        .clk(clk),
-        .reset(rst),
-        .data_in(),
-        .data_in_valid(),
-        .data_out_ready(),
-        .serial_in(FPGA_SERIAL_RX),
-
-        .data_in_ready(),
-        .data_out(),
-        .data_out_valid(),
-        .serial_out(FPGA_SERIAL_TX)
-    );
+    // uart #(
+    //     .CLOCK_FREQ(CPU_CLOCK_FREQ)
+    // ) on_chip_uart (
+    //     .clk(clk),
+    //     .reset(rst),
+    //     .data_in(),
+    //     .data_in_valid(),
+    //     .data_out_ready(),
+    //     .serial_in(FPGA_SERIAL_RX),
+    //
+    //     .data_in_ready(),
+    //     .data_out(),
+    //     .data_out_valid(),
+    //     .serial_out(FPGA_SERIAL_TX)
+    // );
 endmodule

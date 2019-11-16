@@ -3,7 +3,7 @@
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR REGFILE ARRAY INDEXED WITH reg_number */
 `define REGFILE_ARRAY_PATH CPU.rf.registers[reg_number]
 
-module assembly_testbench();
+module assembly_rtype_testbench();
     reg clk, rst;
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
@@ -68,11 +68,43 @@ module assembly_testbench();
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
 
-                // Test BEQ
+                // Test SUB
                 wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 2
-                check_reg(1, 32'd500, 2);               // Verify that x1 contains 500
-                check_reg(2, 32'd100, 3);               // Verify that x2 contains 100
-                $display("ALL ASSEMBLY TESTS PASSED");
+                check_reg(1, 32'hFFFFFF9C, 1);
+
+                // Test AND
+                wait_for_reg_to_equal(20, 32'd3);       // Run the simulation until the flag is set to 3
+                check_reg(1, 32'h00000040, 1);
+
+                // Test OR
+                wait_for_reg_to_equal(20, 32'd4);       // Run the simulation until the flag is set to 4
+                check_reg(1, 32'h000000EC, 1);
+
+                // Test XOR
+                wait_for_reg_to_equal(20, 32'd5);
+                check_reg(1, 32'h000000AC, 1);
+
+                // Test SLL
+                wait_for_reg_to_equal(20, 32'd6);
+                check_reg(1, 32'h00006400, 1);
+
+                // Test SLT
+                wait_for_reg_to_equal(20, 32'd7);
+                check_reg(1, 32'h00000001, 1);
+
+                // Test SLTU
+                wait_for_reg_to_equal(20, 32'd8);
+                check_reg(1, 32'h00000000, 1);
+
+                // Test SRL
+                wait_for_reg_to_equal(20, 32'd9);
+                check_reg(1, 32'h0002A61C, 1);
+
+                // Test SRA
+                wait_for_reg_to_equal(20, 32'd10);
+                check_reg(1, 32'h0002A61C, 1);
+
+                $display("ALL BASIC R-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end
             begin
