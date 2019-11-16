@@ -23,6 +23,14 @@ module ld_sel(
     //shift right din by offset_extend
     assign offset_din = din >> offset_extend;
 
+    // 1010 1111 0000 1100 1100 1111 0000 0011
+    // offset 3
+    // sel 0
+    // 1111 1111 1111 1111 1111 1111 1010 1111
+    // offset 3
+    // sel 3
+    // 0000 0000 0000 0000 0000 0000 1010 1111
+
     always @( * ) begin
         case (sel)
             `LOAD_BYTE : dout = $signed(offset_din[0 +: 8]);

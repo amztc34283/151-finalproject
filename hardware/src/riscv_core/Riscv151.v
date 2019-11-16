@@ -1,5 +1,3 @@
-`define PC_BUS_WIDTH 14
-
 module Riscv151 #(
     parameter CPU_CLOCK_FREQ = 50_000_000,
     parameter RESET_PC = 32'h4000_0000
@@ -9,46 +7,21 @@ module Riscv151 #(
     input FPGA_SERIAL_RX,
     output FPGA_SERIAL_TX
 );
-    // Memories
-    wire [11:0] bios_addra, bios_addrb;
-    wire [31:0] bios_douta, bios_doutb;
-    wire bios_ena, bios_enb;
-    bios_mem bios_mem (
-      .clk(clk),
-      .ena(bios_ena),
-      .addra(bios_addra),
-      .douta(bios_douta),
-      .enb(bios_enb),
-      .addrb(bios_addrb),
-      .doutb(bios_doutb)
-    );
-
-    wire [13:0] dmem_addr;
-    wire [31:0] dmem_din, dmem_dout;
-    wire [3:0] dmem_we;
-    wire dmem_en;
-    dmem dmem (
-      .clk(clk),
-      .en(dmem_en),
-      .we(dmem_we),
-      .addr(dmem_addr),
-      .din(dmem_din),
-      .dout(dmem_dout)
-    );
 
     wire [31:0] imem_dina, imem_doutb;
-    wire [13:0] imem_addra, imem_addrb;
+    wire [31:0] imem_addra, imem_addrb;
     wire [3:0] imem_wea;
     wire imem_ena;
-    imem imem (
-      .clk(clk),
-      .ena(imem_ena),
-      .wea(imem_wea),
-      .addra(imem_addra),
-      .dina(imem_dina),
-      .addrb(imem_addrb),
-      .doutb(imem_doutb)
-    );
+    // Remove the comment at step 9
+    // imem imem (
+    //   .clk(clk),
+    //   .ena(imem_ena),
+    //   .wea(imem_wea),
+    //   .addra(imem_addra[13:0]),
+    //   .dina(imem_dina),
+    //   .addrb(imem_addrb[13:0]),
+    //   .doutb(imem_doutb)
+    // );
 
 
     // Finish wiring modules
@@ -78,60 +51,73 @@ module Riscv151 #(
       .rst(),
       .clk(clk),
       .inst(inst),
-      .BrEq(),
-      .BrLt(),
+      .BrEq(BrEq_signal),
+      .BrLt(BrLT_signal),
       .PCSel(PCSel_signal),
       .InstSel(InstSel_signal),
       .RegWrEn(RegWrEn_signal),
       .ImmSel(ImmSel_signal),
-      .BrUn(),
-      .BSel(),
-      .ASel(),
-      .ALUSel(),
-      .MemRW(),
-      .WBSel(),
+      .BrUn(BrUn_signal),
+      .BSel(BSel_signal),
+      .ASel(ASel_signal),
+      .ALUSel(ALUSel_signal),
+      .MemRW(MemRW_signal),
+      .WBSel(WBSel_signal),
       .FA_1(),
       .FB_1(),
       .FA_2(),
       .FB_2(),
-      .LdSel(),
-      .SSel()
+      .LdSel(LdSel_signal),
+      .SSel(SSel_signal)
     );
 
-    // Muxes in IF/D
-    wire [31:0] ALU_out;
-    wire [`PC_BUS_WIDTH - 1:0] PC_next_d;
-    // Can we parametrize the bit width of the mux
-    twoonemux PCSel_mux (
-        .sel(PCSel_signal),
-        .s0(pc_plus_4),
-        .s1(ALU_out[`PC_BUS_WIDTH - 1:0]),
-        .out(PC_next_d)
-    );
+    //Wire for pipeline register at IF
+    wire [31:0] PC_next_d;
+    wire [31:0] PC_next_q;
 
-    threeonemux InstSel_mux (
-        .sel(InstSel_signal),
-        .s0(imem_doutb),
-        .s1(bios_doutb),
-        .s2(32'h00000013),
-        .out(inst)
-    );
-
-    wire [`PC_BUS_WIDTH - 1:0] PC_next_q;
-    assign bios_addra = PC_next_q;
-    assign bios_addrb = PC_next_q;
-    assign imem_addrb = PC_next_q;
-    d_ff #(.BUS_WIDTH(`PC_BUS_WIDTH)) PC_if_ff (
+    //Pipeline register at IF
+    d_ff PC_if_ff (
         .d(PC_next_d),
         .clk(clk),
         .rst(),
         .q(PC_next_q)
     );
 
-    wire [`PC_BUS_WIDTH - 1:0] pc_plus_4;
+    wire [31:0] pc_plus_4;
     pc_addr pc_plus_four (
         .PC(PC_next_q),
         .PC_out(pc_plus_4)
+    );
+
+    wire [31:0] ALU_out;
+
+    // Can we parametrize the bit width of the mux
+    twoonemux PCSel_mux (
+        .sel(PCSel_signal),
+        .s0(pc_plus_4),
+        .s1(ALU_out),
+        .out(PC_next_d)
+    );
+
+    wire [31:0] bios_addra, bios_addrb;
+    wire [31:0] bios_douta, bios_doutb;
+    wire bios_ena, bios_enb;
+    bios_mem bios_mem (
+      .clk(clk),
+      .ena(bios_ena),
+      .addra(PC_next_d[11:0]),
+      .douta(bios_douta),
+      .enb(bios_enb),
+      .addrb(bios_addrb[11:0]),
+      .doutb(bios_doutb)
+    );
+
+    threeonemux InstSel_mux (
+        .sel(InstSel_signal),
+        .s0(imem_douta),
+        .s1(bios_douta),
+        .s2(32'h00000013),
+        .out(inst)
     );
 
     // Construct your datapath, add as many modules as you want
@@ -154,56 +140,138 @@ module Riscv151 #(
         .imm_out(imm_out)
     );
 
+    /********************* Before second pipeline register is implemented above *******************/
+
     // Pipeline Registers IF/D -> Ex Stage
     // PC+4, PC, DataA, DataB, Imm
     // PC+4 and PC, are both of width: `PC_BUS_WIDTH,
     // They should be zero extended before being used
     // PC => ALU, PC+4 => WB/Regfile
-    wire [31:0] PC_plus_four_ex;
-    assign PC_plus_four_ex[31:`PC_BUS_WIDTH] = 0;
-    d_ff #(.BUS_WIDTH(`PC_BUS_WIDTH)) PC_plus_4_ex_ff (
-        .d(PC_next_d),
+    wire [31:0] PC_plus_4_ex;
+    d_ff PC_plus_4_ex_ff (
+        .d(PC_plus_4),
         .clk(clk),
         .rst(),
-        .q(PC_plus_four_ex[`PC_BUS_WIDTH - 1: 0])
+        .q(PC_plus_4_ex)
     );
 
-    // Goes to ASel Mux
-    wire [31:0] PC_ASel_ex;
-    assign PC_ASel_ex[31:`PC_BUS_WIDTH] = 0;
-    d_ff #(.BUS_WIDTH(`PC_BUS_WIDTH)) PC_ex_ff (
+    wire [31:0] PC_Asel_ex;
+    d_ff PC_ex_ff (
         .d(PC_next_q),
         .clk(clk),
         .rst(),
-        .q(PC_ASel_ex[`PC_BUS_WIDTH - 1:0])
+        .q(PC_Asel_ex)
     );
 
-    wire [31:0] DataA_ex;
-    d_ff #(.BUS_WIDTH(32)) DataA_ex_ff (
+    wire [31:0] rd1_ex;
+    d_ff rs1_ex_ff (
         .d(rd1),
         .clk(clk),
         .rst(),
-        .q(DataA_ex)
+        .q(rd1_ex)
     );
 
-    wire [31:0] DataB_ex;
-    d_ff #(.BUS_WIDTH(32)) DataB_ex_ff (
+    wire [31:0] rd2_ex;
+    d_ff rs2_ex_ff (
         .d(rd2),
         .clk(clk),
         .rst(),
-        .q(DataB_ex)
+        .q(rd2_ex)
     );
 
-    wire [31:0] Imm_ex;
-    d_ff #(.BUS_WIDTH(32)) Imm_ex_ff (
+    wire [31:0] imm_gen_Bsel_ex;
+    d_ff imm_gen_ex_ff (
         .d(imm_out),
         .clk(clk),
         .rst(),
-        .q(Imm_ex)
+        .q(imm_gen_Bsel_ex)
     );
 
+    /******************************* All pipeline register between IF and EX above ********************************/
 
+    branch_comp branch_compar (
+        .ra1(rd1_ex),
+        .ra2(rd2_ex),
+        .BrUn(BrUn_signal),
+        .BrEq(BrEq_signal),
+        .BrLT(BrLT_signal)
+    );
 
+    wire [31:0] Asel_out;
+    twoonemux Asel_mux(
+        .sel(ASel_signal),
+        .s0(rd1_ex),
+        .s1(PC_Asel_ex),
+        .out(Asel_out));
+
+    wire [31:0] Bsel_out;
+    twoonemux Bsel_mux(
+        .sel(BSel_signal),
+        .s0(rd2_ex),
+        .s1(imm_gen_Bsel_ex),
+        .out(Bsel_out));
+
+    alu ALU (
+        .op1(Asel_out),
+        .op2(Bsel_out),
+        .sel(ALUSel_signal),
+        .res(ALU_out)
+    );
+
+    wire [3:0] dmem_we;
+    s_sel ssel(
+        .sel(SSel_signal),
+        .offset(ALU_out[1:0]),
+        .rs2(rd2_ex),
+        .dmem_we(dmem_we),
+        .dmem_din(dmem_din)
+    );
+
+    /*********** everything before MEM stage is implemented above ***********/
+
+    wire [31:0] dmem_din, dmem_dout;
+    dmem dmem (
+      .clk(clk),
+      .en(MemRW_signal),
+      .we(dmem_we),
+      .addr(ALU_out[15:2]),
+      .din(dmem_din),
+      .dout(dmem_dout)
+    );
+
+    wire [31:0] alu_mem;
+    d_ff alu_mem_ff (
+        .d(ALU_out),
+        .clk(clk),
+        .rst(),
+        .q(alu_mem)
+    );
+
+    wire [31:0] pc_plus_4_mem;
+    d_ff pc_plus_4_mem_ff (
+        .d(PC_plus_4_ex),
+        .clk(clk),
+        .rst(),
+        .q(pc_plus_4_mem)
+    );
+
+    /********************* Finish define elements of MEM stage ***********************/
+
+    wire [31:0] ld_out;
+    ld_sel ld(
+        .sel(LdSel_signal),
+        .din(dmem_dout),
+        .offset(alu_mem[1:0]), //getting it from instruction after mem stage
+        .dout(ld_out)
+    );
+
+    threeonemux wb_mux(
+      .sel(WBSel_signal),
+      .s0(ld_out),
+      .s1(alu_mem),
+      .s2(pc_plus_4_mem),
+      .out(wd)
+    );
 
     // On-chip UART
     uart #(

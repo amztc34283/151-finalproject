@@ -78,39 +78,39 @@ module controller(
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs1
-   assign FA_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) && 
-                           ((mem_wb_state != `BRANCH) && 
-                           (mem_wb_state != `STORE)) && 
-                   ((ex_state != `LUI) && (ex_state != `AUIPC) && 
+   assign FA_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
+                           ((mem_wb_state != `BRANCH) &&
+                           (mem_wb_state != `STORE)) &&
+                   ((ex_state != `LUI) && (ex_state != `AUIPC) &&
                    (ex_state != `JAL) && (ex_state != `CSRWI));
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
-   assign FB_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) && 
-                           ((mem_wb_state != `BRANCH) && 
-                           (mem_wb_state != `STORE)) && 
-                   ((ex_state != `LUI) && (ex_state != `AUIPC) && 
-                   (ex_state != `JAL) && (ex_state != `CSRWI) && 
-                   (ex_state != `JALR) && (ex_state != `LOAD) && 
+   assign FB_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
+                           ((mem_wb_state != `BRANCH) &&
+                           (mem_wb_state != `STORE)) &&
+                   ((ex_state != `LUI) && (ex_state != `AUIPC) &&
+                   (ex_state != `JAL) && (ex_state != `CSRWI) &&
+                   (ex_state != `JALR) && (ex_state != `LOAD) &&
                    (ex_state != `I));
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs1
-   assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) && 
-                       ((mem_wb_state != `BRANCH) && 
-                       (mem_wb_state != `STORE)) && 
-                   ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) && 
-                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) && 
+   assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
+                       ((mem_wb_state != `BRANCH) &&
+                       (mem_wb_state != `STORE)) &&
+                   ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
+                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
                    (inst[6:2] != 0));
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 =   (mem_wb_inst_reg[11:7] == inst[24:20]) && 
-                           ((mem_wb_state != `BRANCH) && 
-                           (mem_wb_state != `STORE)) && 
-                   ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) && 
-                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) && 
-                   (inst[6:2] != `JALR) && (inst[6:2] != `LOAD) && 
+   assign FB_1 =   (mem_wb_inst_reg[11:7] == inst[24:20]) &&
+                           ((mem_wb_state != `BRANCH) &&
+                           (mem_wb_state != `STORE)) &&
+                   ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) &&
+                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
+                   (inst[6:2] != `JALR) && (inst[6:2] != `LOAD) &&
                    (inst[6:2] != `I));
 
     always @(posedge clk) begin
@@ -122,7 +122,7 @@ module controller(
     end
 
     // We may wish to refactor this to use continuously assign
-    // the control signals based on the opcode, such an 
+    // the control signals based on the opcode, such an
     // implementation should be more resource efficient
 
     // This representation lets us test the correctness
@@ -133,7 +133,7 @@ module controller(
     // to avoid xxx during synthesis-- the arbitrary value
     // should not conflict with used values
     always @(*) begin
-       case (ex_state) 
+       case (ex_state)
         `LOAD: begin
             ASel = 0;
             BSel = 1;
@@ -159,7 +159,7 @@ module controller(
         `BRANCH: begin
             ASel = 1;
             BSel = 1;
-            BrUn = ex_inst_reg[14:13] == 2'b11 ? 1 : 0; 
+            BrUn = ex_inst_reg[14:13] == 2'b11 ? 1 : 0;
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
@@ -171,7 +171,7 @@ module controller(
                 `BLT: PCSel = BrLt ? 1 : 0;
                 `BGE: PCSel = !BrLt ? 1 : 0;
                 `BLTU: PCSel = BrLt ? 1 : 0;
-                `BGEU: PCSel = !BrLt ? 1 : 0; 
+                `BGEU: PCSel = !BrLt ? 1 : 0;
             endcase
             ImmSel = `B_TYPE;
         end
@@ -219,7 +219,7 @@ module controller(
             PCSel = 0;
             ImmSel = `I_TYPE;
          end
-        `AUIPC: begin 
+        `AUIPC: begin
             ASel = 1;
             BSel = 1;
             BrUn = 0;
@@ -286,7 +286,7 @@ module controller(
             WBSel = 1;
             RegWrEn = 1;
         end
-        `LUI: begin 
+        `LUI: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
