@@ -135,6 +135,13 @@ module Riscv151 #(
         .rd1(rd1), .rd2(rd2)
     );
 
+    wire [31:0] imm_out;
+    imm_gen imm_gen(
+        .inst_in(inst[31:7]),
+        .imm_sel(ImmSel_signal),
+        .imm_out(imm_out)
+    );
+
     /********************* Before second pipeline register is implemented above *******************/
 
     // Pipeline Registers IF/D -> Ex Stage
@@ -176,20 +183,13 @@ module Riscv151 #(
 
     wire [31:0] imm_gen_ex;
     d_ff imm_gen_ex_ff (
-        .d(inst[31:7]),
+        .d(imm_out),
         .clk(clk),
         .rst(),
         .q(imm_gen_ex)
     );
 
     /******************************* All pipeline register between IF and EX above ********************************/
-
-    wire [31:0] imm_bsel_out;
-    imm_gen imm_gen(
-        .inst_in(imm_gen_ex),
-        .imm_sel(ImmSel_signal),
-        .imm_out(imm_bsel_out)
-    );
 
     branch_comp branch_compar (
         .ra1(rd1_ex),
@@ -211,7 +211,7 @@ module Riscv151 #(
     twoonemux Bsel_mux(
         .sel(BSel_signal),
         .s0(rd2_ex),
-        .s1(imm_bsel_out),
+        .s1(imm_gen_ex),
         .rst(rst),
         .out(Bsel_out));
 

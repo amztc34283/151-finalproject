@@ -7,10 +7,13 @@ module reg_file (
 );
     reg [31:0] registers [0:31];
 
+    reg [4:0] ex_wa = 0;
+    reg [4:0] wb_wa = 0;
+
     //Initialize all registers to zero
     integer i;
     initial begin
-        for (i = 1; i < 32; i = i + 1)
+        for (i = 0; i < 32; i = i + 1)
             registers[i] = 0;
     end
 
@@ -18,8 +21,10 @@ module reg_file (
     //x0 is always 0 in RISC-V
     always @ (posedge clk) begin
         if (we && wa != 0) begin
-            registers[wa] <= wd;
+            registers[wb_wa] <= wd;
         end
+        ex_wa <= wa;
+        wb_wa <= ex_wa;
     end
 
     //Asynchronous Read
