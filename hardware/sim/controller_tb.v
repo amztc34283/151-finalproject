@@ -171,7 +171,7 @@ module controller_tb();
         if (FA_1 != FA_1_e_b) begin \
             $display("%s IF/D failed", name); \
             $display("FA_1: actual %d, expected %d", FA_1, FA_1_e_b); \
-            $display("FA_1_e_b: %d", FA_1_e_b); \
+            // $display("FA_1_e_b: %d", FA_1_e_b); \
             `debug_FA1; \
         end \
         if (FB_1 != FB_1_e_b) begin \
@@ -347,9 +347,10 @@ module controller_tb();
             begin \
                 inst = inst_input_a; \
                 @(posedge clk); \
+                #(1) \
                 inst = inst_input_b; \
                 @(posedge clk); \
-                #(1); \
+                #(1) \
                 inst = 32'h00000013; \
                 @(posedge clk); \
                 #(1); \
@@ -417,7 +418,7 @@ module controller_tb();
                 @(posedge clk); \
                 #(1) \
                 `stage3a(name_a); \
-                $display("FA_1_e_b: %d", FA_1_e_b); \
+                // $display("FA_1_e_b: %d", FA_1_e_b); \
                 `stage1b(name_b); \
                 @(posedge clk); \
                 BrEq_in = BrEq_in_b; \
@@ -425,6 +426,7 @@ module controller_tb();
                 #(1) \
                 `stage2b(name_b); \
                 @(posedge clk); \
+                #(1); \
                 `stage3b(name_b); \
                 repeat(2) @(posedge clk); \
             end \
@@ -432,6 +434,15 @@ module controller_tb();
 
 
     initial begin
+
+    `ifndef IVERILOG
+        $vcdpluson;
+    `endif
+    `ifdef IVERILOG
+        $dumpfile("controller_tb.fst");
+        $dumpvars(0,controller_tb);
+    `endif
+
     // LOAD INSTRUCTIONS
     FA_1_e = 0;
     FB_1_e = 0;
@@ -755,7 +766,7 @@ module controller_tb();
     // Expected Control Signals for First Inst
     FA_1_e = 0;
     FB_1_e = 0;
-    FA_2_e = 1;
+    FA_2_e = 0;
     FB_2_e = 0;
     BrUn_e = 1'bx;
     BrEq_in = 1'bx;
@@ -775,7 +786,7 @@ module controller_tb();
     // Expected Control Signals for 2nd Inst
     FA_1_e_b = 0;
     FB_1_e_b = 0;
-    FA_2_e_b = 0;
+    FA_2_e_b = 1;
     FB_2_e_b = 0;
     BrUn_e_b = 1'bx;
     BrEq_in_b = 1'bx;
@@ -806,126 +817,183 @@ module controller_tb();
     FA_1_e_b = 1;
     `forward2_test("f2_add_rs1_a", 32'h00118133, "f2_add_rs1_b", 32'h00310233);
     
-//    // ALU -> ALU Forwarding, rs2
-//    // add x2 x3 x1
-//    // add x4 x3 x2
-//    FA_2_e_b = 0;
-//    FB_2_e_b = 1;
-//    `forward1_test("add_rs2_a", 32'h00118133, "add_rs2_b", 32'h00218233);
+   // ALU -> ALU Forwarding, rs2
+   // add x2 x3 x1
+   // add x4 x3 x2
+   FA_1_e_b = 0;
+   FA_2_e_b = 0;
+   FB_2_e_b = 1;
+   `forward1_test("f1_add_rs2_a", 32'h00118133, "f1_add_rs2_b", 32'h00218233);
     
-//    // ALU -> Mem Forwarding, rs1
-//    // Expected Control Signals for 2nd Inst
-//    // add x2 x3 x1
-//    // lw x3 0(x2)
-//    FA_1_e_b = 0;
-//    FB_1_e_b = 0;
-//    FB_2_e_b = 0;
-//    BrUn_e_b = 1'bx;
-//    BrEq_in_b = 1'bx;
-//    BrLt_in_b = 1'bx;
-//    ALUSel_e_b = `ADD;
+   // add x2 x3 x1
+   // nop
+   // add x4 x3 x2
+    FB_1_e_b = 1;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    FA_1_e_b = 0;
+    `forward2_test("f2_add_rs2_a", 32'h00118133, "f2_add_rs2_b", 32'h00218233);
+
+
+   // ALU -> Mem Forwarding, rs1
+   // Expected Control Signals for 2nd Inst
+   // add x2 x3 x1
+   // lw x3 0(x2)
+   FA_1_e_b = 0;
+   FB_1_e_b = 0;
+   FB_2_e_b = 0;
+   BrUn_e_b = 1'bx;
+   BrEq_in_b = 1'bx;
+   BrLt_in_b = 1'bx;
+   ALUSel_e_b = `ADD;
     
-//    PCSel_e_b = 0;
-//    SSel_e_b = `STORE_X;
-//    InstSel_e_b = 2'b00;   
+   PCSel_e_b = 0;
+   SSel_e_b = `STORE_X;
+   InstSel_e_b = 2'b00;   
  
-//    ASel_e_b = 0;
-//    BSel_e_b = 1;
-//    MemRW_e_b = 1;
-//    LdSel_e_b = `LW_FUNC3;
-//    WBSel_e_b = 0;
-//    RegWrEn_e_b = 1; 
-//    FA_2_e_b = 1;
-//    ImmSel_e_b = `I_TYPE;
-//    `forward1_test("add_rs1_a", 32'h00118133, "lw_rs1_b", 32'h00012183);
+   ASel_e_b = 0;
+   BSel_e_b = 1;
+   MemRW_e_b = 1;
+   LdSel_e_b = `LW_FUNC3;
+   WBSel_e_b = 0;
+   RegWrEn_e_b = 1; 
+   FA_2_e_b = 1;
+   ImmSel_e_b = `I_TYPE;
+   `forward1_test("f1_add_rs1_a", 32'h00118133, "f1_lw_rs1_b", 32'h00012183);
 
-//    // ALU -> Mem Forwarding, rs2
-//    // add x2 x3 x1
-//    // sw x2 0(x3)
-//    FA_2_e_b = 0;
-//    FB_2_e_b = 1;
-//    LdSel_e_b = `LOAD_X;
-//    SSel_e_b = `SW_FUNC3;
-//    RegWrEn_e_b = 0; 
-//    WBSel_e_b = `WBSEL_X;
-//    ImmSel_e_b = `S_TYPE;
-//    `forward1_test("add_rs2_a", 32'h00118133, "sw_rs2_b", 32'h0021a023);
+    // add x2 x3 x1
+    // nop
+    // lw x3 0(x2)
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    FA_1_e_b = 1;
+    `forward2_test("f2_add_rs1_a", 32'h00118133, "f2_lw_rs1_b", 32'h00012183);
+
+    // ALU -> Mem Forwarding, rs2
+    // add x2 x3 x1
+    // sw x2 0(x3)
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 1;
+    FA_1_e_b = 0;
+    LdSel_e_b = `LOAD_X;
+    SSel_e_b = `SW_FUNC3;
+    RegWrEn_e_b = 0; 
+    WBSel_e_b = `WBSEL_X;
+    ImmSel_e_b = `S_TYPE;
+    `forward1_test("f1_add_rs2_a", 32'h00118133, "f1_sw_rs2_b", 32'h0021a023);
 
 
-//    // Mem -> ALU Forwarding, rs1
-//    // lw x2 0(x3)
-//    // add x4 x2 x3
-//    // Expected Control Signals for First Inst
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 1'bx;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 1;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 1;
-//    LdSel_e = `LW_FUNC3;
-//    WBSel_e = 0;
-//    PCSel_e = 0;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1; 
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `I_TYPE;
+    // add x2 x3 x1
+    // nop
+    // sw x2 0(x3)
+    FB_1_e_b = 1;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    FA_1_e_b = 0;
+    `forward2_test("f2_add_rs2_a", 32'h00118133, "f2_sw_rs2_b", 32'h0021a023);
 
-//    // Expected Control Signals for 2nd Inst
-//    FA_1_e_b = 0;
-//    FB_1_e_b = 0;
-//    FA_2_e_b = 1;
-//    FB_2_e_b = 0;
-//    BrUn_e_b = 1'bx;
-//    BrEq_in_b = 1'bx;
-//    BrLt_in_b = 1'bx;
-//    BSel_e_b = 0;
-//    ASel_e_b = 0;
-//    ALUSel_e_b = `ADD;
-//    MemRW_e_b = 0;
-//    LdSel_e_b = `LOAD_X;
-//    WBSel_e_b = 1;
-//    PCSel_e_b = 0;
-//    SSel_e_b = `STORE_X;
-//    RegWrEn_e_b = 1; 
-//    InstSel_e_b = 2'b00;
-//    ImmSel_e_b = `X_TYPE;
 
-//    // lw x2 0(x3)
-//    // add x4 x2 x3
-//    `forward1_test("lw_rs1_a", 32'h0001A103, "add_rs1_b", 32'h00310233);
+    // Mem -> ALU Forwarding, rs1
+    // lw x2 0(x3)
+    // add x4 x2 x3
+    // Expected Control Signals for First Inst
+    FA_1_e = 0;
+    FB_1_e = 0;
+    FA_2_e = 0;
+    FB_2_e = 0;
+    BrUn_e = 1'bx;
+    BrEq_in = 1'bx;
+    BrLt_in = 1'bx;
+    BSel_e = 1;
+    ASel_e = 0;
+    ALUSel_e = `ADD;
+    MemRW_e = 1;
+    LdSel_e = `LW_FUNC3;
+    WBSel_e = 0;
+    PCSel_e = 0;
+    SSel_e = `STORE_X;
+    RegWrEn_e = 1; 
+    InstSel_e = 2'b00;
+    ImmSel_e = `I_TYPE;
+
+    // Expected Control Signals for 2nd Inst
+    FA_1_e_b = 0;
+    FB_1_e_b = 0;
+    FA_2_e_b = 1;
+    FB_2_e_b = 0;
+    BrUn_e_b = 1'bx;
+    BrEq_in_b = 1'bx;
+    BrLt_in_b = 1'bx;
+    BSel_e_b = 0;
+    ASel_e_b = 0;
+    ALUSel_e_b = `ADD;
+    MemRW_e_b = 0;
+    LdSel_e_b = `LOAD_X;
+    WBSel_e_b = 1;
+    PCSel_e_b = 0;
+    SSel_e_b = `STORE_X;
+    RegWrEn_e_b = 1; 
+    InstSel_e_b = 2'b00;
+    ImmSel_e_b = `X_TYPE;
+
+    // lw x2 0(x3)
+    // add x4 x2 x3
+    `forward1_test("f1_lw_rs1_a", 32'h0001A103, "f1_add_rs1_b", 32'h00310233);
    
-//    // Mem -> ALU Forwarding, rs2
-//    // lw x2 0(x3)
-//    // add x4 x3 x2
-//    FA_2_e_b = 0;
-//    FB_2_e_b = 1;
-//    `forward1_test("lw_rs2_a", 32'h0001A103, "add_rs2_b", 32'h00218233);
+    // lw x2 0(x3)
+    // nop
+    // add x4 x2 x3
+    FA_1_e_b = 1;
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    `forward2_test("f2_lw_rs1_a", 32'h0001A103, "f2_add_rs1_b", 32'h00310233);
+
+
+    // Mem -> Mem Forwarding, rs2
+    // lw x2 0(x3)
+    // sw x2 0(x3)
+    FA_1_e_b = 0;
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 1;
+    BSel_e_b = 1;
+    MemRW_e_b = 1;
+    LdSel_e_b = `LOAD_X;
+    SSel_e_b = `SW_FUNC3;
+    RegWrEn_e_b = 0; 
+    WBSel_e_b = `WBSEL_X;
+    ImmSel_e_b = `S_TYPE;
+    `forward1_test("f1_lw_rs1_a", 32'h0001A103, "f1_sw_rs1_b", 32'h0021A023);
+
+    // lw x2 0(x3)
+    // nop
+    // sw x2 0(x3)
+    FA_1_e_b = 0;
+    FB_1_e_b = 1;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    `forward2_test("f2_lw_rs1_a", 32'h0001A103, "f2_sw_rs1_b", 32'h0021A023);
     
-//    // Mem -> Mem Forwarding, rs2
-//    // lw x2 0(x3)
-//    // sw x2 0(x3)
-//    FA_2_e_b = 0;
-//    FB_2_e_b = 1;
-//    BSel_e_b = 1;
-//    MemRW_e_b = 1;
-//    LdSel_e_b = `LOAD_X;
-//    SSel_e_b = `SW_FUNC3;
-//    RegWrEn_e_b = 0; 
-//    WBSel_e_b = `WBSEL_X;
-//    ImmSel_e_b = `S_TYPE;
-//    `forward1_test("lw_rs1_a", 32'h0001A103, "sw_rs1_b", 32'h0021A023);
-    
-//    // Mem -> Mem Forwarding, rs1
-//    // lw x2 0(x3)
-//    // sw x3 0(x2)
-//    FA_2_e_b = 1;
-//    FB_2_e_b = 0;
-//    `forward1_test("lw_rs1_a", 32'h0001A103, "sw_rs1_b", 32'h00312023);
+    // Mem -> Mem Forwarding, rs1
+    // lw x2 0(x3)
+    // sw x3 0(x2)
+    FA_1_e_b = 0;
+    FB_1_e_b = 0;
+    FA_2_e_b = 1;
+    FB_2_e_b = 0;
+    `forward1_test("f1_lw_rs1_a", 32'h0001A103, "f1_sw_rs1_b", 32'h00312023);
+
+    // lw x2 0(x3)
+    // nop
+    // sw x3 0(x2)
+    FA_1_e_b = 1;
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    `forward2_test("f2_lw_rs1_a", 32'h0001A103, "f2_sw_rs1_b", 32'h00312023);
     
 //    // JAL -> ALU Forwarding, rs1
     
@@ -941,7 +1009,9 @@ module controller_tb();
     
 //    // NON ADJACENT FORWARDING TESTS
     
-    
+    `ifndef IVERILOG
+        $vcdplusoff;
+    `endif
 
     $finish();
 
