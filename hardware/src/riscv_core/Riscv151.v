@@ -75,6 +75,8 @@ module Riscv151 #(
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
 
+    assign PC_next_addr = rst ? 0 : PC_next_d;
+
     //Pipeline register at IF
     d_ff PC_if_ff (
         .d(PC_next_d),
@@ -96,7 +98,6 @@ module Riscv151 #(
         .sel(PCSel_signal),
         .s0(pc_plus_4),
         .s1(ALU_out),
-        .rst(rst),
         .out(PC_next_d)
     );
 
@@ -107,7 +108,7 @@ module Riscv151 #(
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
-      .addra(PC_next_d[13:2]),
+      .addra(PC_next_addr[13:2]),
       .douta(bios_douta),
       .enb(bios_enb),
       .addrb(bios_addrb[13:2]),
@@ -204,7 +205,6 @@ module Riscv151 #(
         .sel(ASel_signal),
         .s0(rd1_ex),
         .s1(PC_Asel_ex),
-        .rst(rst),
         .out(Asel_out));
 
     wire [31:0] Bsel_out;
@@ -212,7 +212,6 @@ module Riscv151 #(
         .sel(BSel_signal),
         .s0(rd2_ex),
         .s1(imm_gen_ex),
-        .rst(rst),
         .out(Bsel_out));
 
     alu ALU (
