@@ -20,7 +20,7 @@ module reg_file (
     //Synchronous Write
     //x0 is always 0 in RISC-V
     always @ (posedge clk) begin
-        if (we && wa != 0) begin
+        if (we && wb_wa != 0) begin
             registers[wb_wa] <= wd;
         end
         ex_wa <= wa;

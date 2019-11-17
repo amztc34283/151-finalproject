@@ -93,7 +93,7 @@ module assembly_testbench();
                 // Test ADD
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
-
+                done = 1;
                 // // Test BEQ
                 // wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 2
                 // check_reg(1, 32'd500, 2);               // Verify that x1 contains 500
