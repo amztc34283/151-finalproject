@@ -114,11 +114,19 @@ module controller(
                    (inst[6:2] != `I));
 
     always @(posedge clk) begin
-        ex_inst_reg <= inst;
-        mem_wb_inst_reg <= ex_inst_reg;
+        if (rst) begin
+            ex_inst_reg <= 32'h00000013;
+            mem_wb_inst_reg <= 32'h00000013;
 
-        ex_state <= inst[6:2];
-        mem_wb_state <= ex_state;
+            ex_state <= inst[6:2];
+            mem_wb_state <= ex_state;
+        end else begin
+            ex_inst_reg <= inst;
+            mem_wb_inst_reg <= ex_inst_reg;
+
+            ex_state <= inst[6:2];
+            mem_wb_state <= ex_state;
+        end
     end
 
     // We may wish to refactor this to use continuously assign

@@ -78,7 +78,7 @@ module assembly_testbench();
         `endif
 
         rst = 1;
-        @(posedge clk);
+        repeat(5)@(posedge clk);
         rst = 0;
 
         // Reset the CPU

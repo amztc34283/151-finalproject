@@ -75,6 +75,9 @@ module Riscv151 #(
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
 
+    wire [31:0] PC_next_addr;
+
+    //might be buggy
     assign PC_next_addr = rst ? 0 : PC_next_d;
 
     //Pipeline register at IF
@@ -154,7 +157,7 @@ module Riscv151 #(
     d_ff PC_plus_4_ex_ff (
         .d(PC_plus_4),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(PC_plus_4_ex)
     );
 
@@ -162,7 +165,7 @@ module Riscv151 #(
     d_ff PC_ex_ff (
         .d(PC_next_q),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(PC_Asel_ex)
     );
 
@@ -170,7 +173,7 @@ module Riscv151 #(
     d_ff rs1_ex_ff (
         .d(rd1),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(rd1_ex)
     );
 
@@ -178,7 +181,7 @@ module Riscv151 #(
     d_ff rs2_ex_ff (
         .d(rd2),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(rd2_ex)
     );
 
@@ -186,7 +189,7 @@ module Riscv151 #(
     d_ff imm_gen_ex_ff (
         .d(imm_out),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(imm_gen_ex)
     );
 
@@ -246,7 +249,7 @@ module Riscv151 #(
     d_ff alu_mem_ff (
         .d(ALU_out),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(alu_mem)
     );
 
@@ -254,7 +257,7 @@ module Riscv151 #(
     d_ff pc_plus_4_mem_ff (
         .d(PC_plus_4_ex),
         .clk(clk),
-        .rst(),
+        .rst(rst),
         .q(pc_plus_4_mem)
     );
 
