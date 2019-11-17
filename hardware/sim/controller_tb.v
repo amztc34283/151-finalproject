@@ -36,6 +36,13 @@
 
 `define WBSEL_X 0
 
+`define I_TYPE 1
+`define S_TYPE 2
+`define B_TYPE 3
+`define U_TYPE 4
+`define J_TYPE 5
+`define X_TYPE 6
+
 module controller_tb();
 
     reg rst = 0;
@@ -71,7 +78,7 @@ module controller_tb();
         .PCSel(PCSel),
         .InstSel(InstSel),
         .RegWrEn(RegWrEn),
-        .ImmSel(ImmSel)
+        .ImmSel(ImmSel),
         .BrUn(BrUn),
         .BSel(BSel),
         .ASel(ASel),
@@ -101,6 +108,7 @@ module controller_tb();
     reg [1:0] SSel_e;
     reg RegWrEn_e;
     reg [1:0] InstSel_e;
+    reg [2:0] ImmSel_e;
 
     reg FA_1_e_b;
     reg FB_1_e_b;
@@ -119,6 +127,7 @@ module controller_tb();
     reg [1:0] InstSel_e_b;
     reg BrEq_in_b = 0;
     reg BrLt_in_b = 0;
+    reg [2:0] ImmSel_e_b;
 
    `define debug_FB1 \
         $display("mem_wb_inst: %h", DUT_controller.mem_wb_inst_reg); \
@@ -148,6 +157,11 @@ module controller_tb();
             $display("%s IF/D failed", name); \
             $display("FB_1: actual %d, expected %d", FB_1, FB_1_e); \
             `debug_FB1; \
+        end \
+        #(1) \
+        if (ImmSel != ImmSel_e) begin \
+            $display("%s IF/D failed", name); \
+            $display("ImmSel: actual %d, expected %d", ImmSel, ImmSel_e); \
         end 
 
     `define stage1b(name) \
@@ -160,7 +174,13 @@ module controller_tb();
             $display("%s IF/D failed", name); \
             $display("FB_1: actual %d, expected %d", FB_1, FB_1_e_b); \
             `debug_FB1; \
+        end \
+        #(1) \
+        if (ImmSel != ImmSel_e_b) begin \
+            $display("%s IF/D failed", name); \
+            $display("ImmSel: actual %d, expected %d", ImmSel, ImmSel_e_b); \
         end 
+
 
     `define stage2b(name) \
          if (FA_2 != FA_2_e_b) begin \
@@ -424,6 +444,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1;
     InstSel_e = 2'b00;
+    ImmSel_e = `I_TYPE;
 
     // lw x2 0(x3)
     `ctrl_test("lw", 32'h0001a103);
@@ -462,6 +483,7 @@ module controller_tb();
     SSel_e = `SW_FUNC3;
     RegWrEn_e = 0;
     InstSel_e = 2'b00;
+    ImmSel_e = `S_TYPE;
 
     // sw x2 0(x3)
     `ctrl_test("sw", 32'h0021a023);
@@ -492,6 +514,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
+    ImmSel_e = `X_TYPE;
     
     // add x3 x4 x1 
     `ctrl_test("add", 32'h001201b3);
@@ -551,6 +574,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
+    ImmSel_e = `I_TYPE;
 
      // addi x3 x4 x1 
      `ctrl_test("addi", 32'h00420193);
@@ -603,6 +627,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 0; 
     InstSel_e = 2'b10;
+    ImmSel_e = `B_TYPE;
 
     // beq x30 x1 156
     BrUn_e = 0;
@@ -672,6 +697,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
+    ImmSel_e = `J_TYPE;
 
     // jal x0 96
     InstSel_e = 2'b10;
@@ -680,6 +706,7 @@ module controller_tb();
     `ctrl_test("jal", 32'h0600006f);
   
     // jalr x0 x7 100
+    ImmSel_e = `I_TYPE;
     InstSel_e = 2'b10;
     ASel_e = 0;  
     BSel_e = 1;
@@ -703,6 +730,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
+    ImmSel_e = `U_TYPE;
 
     // lui x2 1000
     ALUSel_e = `B;
@@ -736,6 +764,7 @@ module controller_tb();
     SSel_e = `STORE_X;
     RegWrEn_e = 1; 
     InstSel_e = 2'b00;
+    ImmSel_e = `X_TYPE;
 
     // Expected Control Signals for 2nd Inst
     FA_1_e_b = 0;
@@ -755,6 +784,8 @@ module controller_tb();
     SSel_e_b = `STORE_X;
     RegWrEn_e_b = 1; 
     InstSel_e_b = 2'b00;
+    ImmSel_e_b = `X_TYPE;
+
     // add x2 x3 x1
     // add x4 x2 x3
     `forward1_test("add_rs1_a", 32'h00118133, "add_rs1_b", 32'h00310233);
@@ -789,6 +820,7 @@ module controller_tb();
     WBSel_e_b = 0;
     RegWrEn_e_b = 1; 
     FA_2_e_b = 1;
+    ImmSel_e_b = `I_TYPE;
     `forward1_test("add_rs1_a", 32'h00118133, "lw_rs1_b", 32'h00012183);
 
     // ALU -> Mem Forwarding, rs2
@@ -800,6 +832,7 @@ module controller_tb();
     SSel_e_b = `SW_FUNC3;
     RegWrEn_e_b = 0; 
     WBSel_e_b = `WBSEL_X;
+    ImmSel_e_b = `S_TYPE;
     `forward1_test("add_rs2_a", 32'h00118133, "sw_rs2_b", 32'h0021a023);
 
 
