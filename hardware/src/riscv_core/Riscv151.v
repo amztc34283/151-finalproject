@@ -75,10 +75,13 @@ module Riscv151 #(
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
 
-    wire [31:0] PC_next_addr;
+    reg [31:0] PC_next_addr;
 
     //might be buggy
-    assign PC_next_addr = rst ? 0 : PC_next_d;
+    always @(posedge clk) begin
+      PC_next_addr <= rst ? 0 : PC_next_d;
+    end
+    // assign PC_next_addr = rst ? 0 : PC_next_d;
 
     //Pipeline register at IF
     d_ff PC_if_ff (

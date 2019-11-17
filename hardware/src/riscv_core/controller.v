@@ -118,8 +118,8 @@ module controller(
             ex_inst_reg <= 32'h00000013;
             mem_wb_inst_reg <= 32'h00000013;
 
-            ex_state <= inst[6:2];
-            mem_wb_state <= ex_state;
+            ex_state <= 2;
+            mem_wb_state <= 2;
         end else begin
             ex_inst_reg <= inst;
             mem_wb_inst_reg <= ex_inst_reg;
