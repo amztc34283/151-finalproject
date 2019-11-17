@@ -153,11 +153,8 @@ module Riscv151 #(
         .imm_sel(ImmSel_signal),
         .imm_out(imm_out)
     );
-<<<<<<< HEAD
-=======
 
     /********************* Before second pipeline register is implemented above *******************/
->>>>>>> 1c56067... riscv-core
 
     // Pipeline Registers IF/D -> Ex Stage
     // PC+4, PC, DataA, DataB, Imm
@@ -199,22 +196,14 @@ module Riscv151 #(
         .q(DataB_ex)
     );
 
-<<<<<<< HEAD
-    wire [31:0] Imm_ex;
-    d_ff #(.BUS_WIDTH(32)) Imm_ex_ff (
-=======
     wire [31:0] imm_gen_ex;
     d_ff imm_gen_ex_ff (
->>>>>>> 1c56067... riscv-core
         .d(imm_out),
         .clk(clk),
         .rst(),
         .q(Imm_ex)
     );
 
-<<<<<<< HEAD
-
-=======
     /******************************* All pipeline register between IF and EX above ********************************/
 
     branch_comp branch_compar (
@@ -224,15 +213,8 @@ module Riscv151 #(
         .BrEq(BrEq_signal),
         .BrLT(BrLT_signal)
     );
->>>>>>> 1c56067... riscv-core
 
 
-<<<<<<< HEAD
-    // On-chip UART
-    uart #(
-        .CLOCK_FREQ(CPU_CLOCK_FREQ)
-    ) on_chip_uart (
-=======
     wire [31:0] Bsel_out;
     twoonemux Bsel_mux(
         .sel(BSel_signal),
@@ -280,7 +262,6 @@ module Riscv151 #(
     wire [31:0] pc_plus_4_mem;
     d_ff pc_plus_4_mem_ff (
         .d(PC_plus_4_ex),
->>>>>>> 1c56067... riscv-core
         .clk(clk),
         .reset(rst),
         .data_in(),
