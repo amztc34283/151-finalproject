@@ -78,7 +78,8 @@ module assembly_testbench();
         `endif
 
         rst = 1;
-        repeat(5)@(posedge clk);
+        //repeat only once seems not working - might be bug.
+        repeat(2) @(posedge clk);
         rst = 0;
 
         // Reset the CPU

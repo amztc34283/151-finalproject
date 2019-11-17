@@ -43,14 +43,14 @@ module assembly_itype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/assembly_tests.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_tests/itype.hex", CPU.bios_mem.mem);
 
         // `ifndef IVERILOG
         //     $vcdpluson;
         // `endif
         `ifdef IVERILOG
-            $dumpfile("assembly_testbench.fst");
-            $dumpvars(0,assembly_testbench);
+            $dumpfile("assembly_itype_testbench.fst");
+            $dumpvars(0,assembly_itype_testbench);
         `endif
 
         rst = 0;
@@ -82,7 +82,7 @@ module assembly_itype_testbench();
 
                 // Test SLLI
                 wait_for_reg_to_equal(20, 32'd5);
-                check_reg(1, 32'h00006400, 1);
+                check_reg(1, 32'h00000000, 1);
 
                 // Test SLTI
                 wait_for_reg_to_equal(20, 32'd6);
@@ -94,11 +94,11 @@ module assembly_itype_testbench();
 
                 // Test SRLI
                 wait_for_reg_to_equal(20, 32'd8);
-                check_reg(1, 32'h0002A61C, 1);
+                check_reg(1, 32'h0000001F, 1);
 
                 // Test SRAI
                 wait_for_reg_to_equal(20, 32'd9);
-                check_reg(1, 32'h0002A61C, 1);
+                check_reg(1, 32'h0000001F, 1);
 
                 $display("ALL BASIC I-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;

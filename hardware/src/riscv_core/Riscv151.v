@@ -65,8 +65,8 @@ module Riscv151 #(
       .WBSel(WBSel_signal),
       .FA_1(),
       .FB_1(),
-      .FA_2(),
-      .FB_2(),
+      .FA_2(FA_2_signal),
+      .FB_2(FB_2_signal),
       .LdSel(LdSel_signal),
       .SSel(SSel_signal)
     );
@@ -197,10 +197,30 @@ module Riscv151 #(
     );
 
     /******************************* All pipeline register between IF and EX above ********************************/
+    wire [31:0] FA_2_out;
+    wire [31:0] FB_2_out;
+
+    twoonemux FA_2_mux (
+        .sel(FA_2_signal),
+        .s0(rd1_ex),
+        .s1(wd),
+        .out(FA_2_out)
+    );
+
+    twoonemux FB_2_mux (
+        .sel(FB_2_signal),
+        .s0(rd2_ex),
+        .s1(wd),
+        .out(FB_2_out)
+    );
+
+    /******************************* FA_2 and FB_2 above ********************************/
 
     branch_comp branch_compar (
-        .ra1(rd1_ex),
-        .ra2(rd2_ex),
+        // .ra1(rd1_ex),
+        // .ra2(rd2_ex),
+        .ra1(FA_2_out),
+        .ra2(FB_2_out),
         .BrUn(BrUn_signal),
         .BrEq(BrEq_signal),
         .BrLT(BrLT_signal)
@@ -209,14 +229,16 @@ module Riscv151 #(
     wire [31:0] Asel_out;
     twoonemux Asel_mux(
         .sel(ASel_signal),
-        .s0(rd1_ex),
+        // .s0(rd1_ex),
+        .s0(FA_2_out),
         .s1(PC_Asel_ex),
         .out(Asel_out));
 
     wire [31:0] Bsel_out;
     twoonemux Bsel_mux(
         .sel(BSel_signal),
-        .s0(rd2_ex),
+        // .s0(rd2_ex),
+        .s0(FB_2_out),
         .s1(imm_gen_ex),
         .out(Bsel_out));
 
@@ -231,7 +253,8 @@ module Riscv151 #(
     s_sel ssel(
         .sel(SSel_signal),
         .offset(ALU_out[1:0]),
-        .rs2(rd2_ex),
+        // .rs2(rd2_ex),
+        .rs2(FB_2_out),
         .dmem_we(dmem_we),
         .dmem_din(dmem_din)
     );
