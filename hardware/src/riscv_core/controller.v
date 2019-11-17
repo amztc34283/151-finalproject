@@ -132,8 +132,25 @@ module controller(
     // instruction type, we set it to an arbitrary value
     // to avoid xxx during synthesis-- the arbitrary value
     // should not conflict with used values
+
     always @(*) begin
-       case (ex_state)
+        case (inst[6:2])
+        `LOAD:      ImmSel = `I_TYPE;
+        `STORE:     ImmSel = `S_TYPE;
+        `BRANCH:    ImmSel = `B_TYPE;
+        `JALR:      ImmSel = `I_TYPE;
+        `JAL:       ImmSel = `J_TYPE;
+        `R:         ImmSel = `X_TYPE;
+        `I:         ImmSel = `I_TYPE;
+        `AUIPC:     ImmSel = `U_TYPE;
+        `LUI:       ImmSel = `U_TYPE;
+        endcase
+    end
+
+
+
+    always @(*) begin
+        case (ex_state)
         `LOAD: begin
             ASel = 0;
             BSel = 1;
@@ -144,7 +161,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `I_TYPE;
+
         end
         `STORE: begin
             ASel = 0;
@@ -156,7 +173,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `S_TYPE;
+
         end
         `BRANCH: begin
             ASel = 1;
@@ -175,7 +192,7 @@ module controller(
                 `BLTU: PCSel = BrLt ? 1 : 0;
                 `BGEU: PCSel = !BrLt ? 1 : 0;
             endcase
-            ImmSel = `B_TYPE;
+
         end
         `JALR: begin
             ASel = 0;
@@ -186,7 +203,7 @@ module controller(
             SSel = 3;
             InstSel = 2;
             PCSel = 1;
-            ImmSel = `I_TYPE;
+
         end
         `JAL: begin
             ASel = 1;
@@ -197,7 +214,7 @@ module controller(
             SSel = 3;
             PCSel = 1;
             InstSel = 2;
-            ImmSel = `J_TYPE;
+
         end
         `R: begin
             ASel = 0;
@@ -209,7 +226,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `X_TYPE;
+
         end
         `I: begin
             ASel = 0;
@@ -221,7 +238,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `I_TYPE;
+
          end
         `AUIPC: begin
             ASel = 1;
@@ -233,7 +250,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `U_TYPE;
+
          end
         `LUI: begin
             ASel = 0;
@@ -245,7 +262,7 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
-            ImmSel = `U_TYPE;
+
         end
         endcase
     end

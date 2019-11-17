@@ -107,10 +107,10 @@ module Riscv151 #(
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
-      .addra(PC_next_d[11:0]),
+      .addra(PC_next_d[13:2]),
       .douta(bios_douta),
       .enb(bios_enb),
-      .addrb(bios_addrb[11:0]),
+      .addrb(bios_addrb[13:2]),
       .doutb(bios_doutb)
     );
 

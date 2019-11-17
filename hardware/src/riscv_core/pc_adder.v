@@ -3,6 +3,6 @@ module pc_addr #(parameter BUS_WIDTH = 32) (
     output [BUS_WIDTH - 1:0] PC_out
 );
 
-    assign PC_out = PC + 1;
+    assign PC_out = PC + 4;
 
 endmodule

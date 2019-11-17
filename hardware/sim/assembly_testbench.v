@@ -2,6 +2,9 @@
 
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR REGFILE ARRAY INDEXED WITH reg_number */
 `define REGFILE_ARRAY_PATH CPU.rf.registers[reg_number]
+`define INSTMUX_OUT_PATH CPU.InstSel_mux.out
+`define DA_PATH CPU.rf.rd1
+`define DB_PATH CPU.rf.rd2
 
 module assembly_testbench();
     reg clk, rst;
@@ -19,6 +22,18 @@ module assembly_testbench();
         .FPGA_SERIAL_RX(),
         .FPGA_SERIAL_TX()
     );
+
+    task check_instmux_out;
+        $display("%h", `INSTMUX_OUT_PATH);
+    endtask
+
+    task check_register_da;
+        $display("%h", `DA_PATH);
+    endtask
+
+    task check_register_db;
+        $display("%h", `DB_PATH);
+    endtask
 
     // A task to check if the value contained in a register equals an expected value
     task check_reg;
@@ -38,7 +53,10 @@ module assembly_testbench();
     task wait_for_reg_to_equal;
         input [4:0] reg_number;
         input [31:0] expected_value;
-        while (`REGFILE_ARRAY_PATH !== expected_value) @(posedge clk);
+        while (`REGFILE_ARRAY_PATH !== expected_value) begin
+            @(posedge clk);
+            $display("waiting for register to equal %h", expected_value);
+        end
     endtask
 
     reg done = 0;
@@ -56,15 +74,16 @@ module assembly_testbench();
         rst = 0;
 
         // Reset the CPU
-        rst = 1;
-        repeat (30) @(posedge clk);             // Hold reset for 30 cycles
-        rst = 0;
+        // rst = 1;
+        // repeat (30) @(posedge clk);             // Hold reset for 30 cycles
+        // rst = 0;
 
         fork
             begin
                 // Your processor should begin executing the code in /software/assembly_tests/start.s
 
                 // Test ADD
+                check_instmux_out();
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
 
