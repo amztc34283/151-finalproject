@@ -35,6 +35,11 @@ module assembly_testbench();
         $display("%h", `DB_PATH);
     endtask
 
+    task peek_reg;
+        input [4:0] reg_number;
+        $display("Reg number %d with value %h", reg_number, `REGFILE_ARRAY_PATH);
+    endtask
+
     // A task to check if the value contained in a register equals an expected value
     task check_reg;
         input [4:0] reg_number;
@@ -55,7 +60,8 @@ module assembly_testbench();
         input [31:0] expected_value;
         while (`REGFILE_ARRAY_PATH !== expected_value) begin
             @(posedge clk);
-            $display("waiting for register to equal %h", expected_value);
+            peek_reg(10);
+            $display("waiting for register to equal %h, but get %h", expected_value, `REGFILE_ARRAY_PATH);
         end
     endtask
 
@@ -71,6 +77,8 @@ module assembly_testbench();
             $dumpvars(0,assembly_testbench);
         `endif
 
+        rst = 1;
+        @(posedge clk);
         rst = 0;
 
         // Reset the CPU
@@ -83,16 +91,15 @@ module assembly_testbench();
                 // Your processor should begin executing the code in /software/assembly_tests/start.s
 
                 // Test ADD
-                check_instmux_out();
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
 
-                // Test BEQ
-                wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 2
-                check_reg(1, 32'd500, 2);               // Verify that x1 contains 500
-                check_reg(2, 32'd100, 3);               // Verify that x2 contains 100
-                $display("ALL ASSEMBLY TESTS PASSED");
-                done = 1;
+                // // Test BEQ
+                // wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 2
+                // check_reg(1, 32'd500, 2);               // Verify that x1 contains 500
+                // check_reg(2, 32'd100, 3);               // Verify that x2 contains 100
+                // $display("ALL ASSEMBLY TESTS PASSED");
+                // done = 1;
             end
             begin
                 repeat (1000) @(posedge clk);

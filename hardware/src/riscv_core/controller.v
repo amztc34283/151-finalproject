@@ -69,11 +69,11 @@ module controller(
     output reg [2:0] LdSel,
     output reg [1:0] SSel);
 
-    reg [31:0] ex_inst_reg;
-    reg [31:0] mem_wb_inst_reg;
+    reg [31:0] ex_inst_reg = 32'h00000013;
+    reg [31:0] mem_wb_inst_reg = 32'h00000013;
 
-    reg [4:0] ex_state = 0;
-    reg [4:0] mem_wb_state = 0;
+    reg [4:0] ex_state = 2;
+    reg [4:0] mem_wb_state = 2;
 
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
@@ -144,6 +144,7 @@ module controller(
         `I:         ImmSel = `I_TYPE;
         `AUIPC:     ImmSel = `U_TYPE;
         `LUI:       ImmSel = `U_TYPE;
+        default:    ImmSel = `X_TYPE;
         endcase
     end
 
@@ -264,6 +265,17 @@ module controller(
             PCSel = 0;
 
         end
+        default: begin
+            ASel = 0;
+            BSel = 1;
+            BrUn = 0;
+            ALUSel = `B;
+            MemRW = 0;
+            SSel = 3;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
+            PCSel = 0;
+        end
         endcase
     end
 
@@ -313,6 +325,11 @@ module controller(
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
+        end
+        default: begin
+            LdSel = `LOAD_X;
+            WBSel = `WBSel_X;
+            RegWrEn = 0;
         end
         endcase
     end
