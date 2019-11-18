@@ -79,7 +79,9 @@ module controller(
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs1
-   assign FA_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
+   assign FA_2 = (mem_wb_inst_reg[11:7] != 0) && 
+                 (ex_inst_reg[19:15] != 0) &&
+                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
@@ -89,7 +91,9 @@ module controller(
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
-   assign FB_2 =  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
+   assign FB_2 = (mem_wb_inst_reg[11:7] != 0) && 
+                 (ex_inst_reg[24:20] != 0) &&
+                 (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
@@ -101,7 +105,9 @@ module controller(
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs1
-   assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
+   assign FA_1 = (mem_wb_inst_reg[11:7] != 0) && 
+                 (inst[19:15] != 0) && 
+                 (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                        ((mem_wb_state != `BRANCH) &&
                        (mem_wb_state != `STORE) && 
                        (mem_wb_state != `X)) &&
@@ -111,7 +117,9 @@ module controller(
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 =   (mem_wb_inst_reg[11:7] == inst[24:20]) &&
+   assign FB_1 = (mem_wb_inst_reg[11:7] != 0) && 
+                 (inst[24:20] != 0) &&
+                 (mem_wb_inst_reg[11:7] == inst[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
