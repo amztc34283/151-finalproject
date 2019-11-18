@@ -28,7 +28,7 @@ module Riscv151 #(
     // Set PC size to same bit width as imem and biosmem
     wire BrEq_signal;
     wire BrLT_signal;
-    wire PCSel_signal;
+    wire [1:0] PCSel_signal;
     wire [1:0] InstSel_signal;
     wire RegWrEn_signal;
     wire [2:0] ImmSel_signal;
@@ -48,7 +48,7 @@ module Riscv151 #(
     wire [31:0] inst;
 
     controller controls(
-      .rst(),
+      .rst(rst),
       .clk(clk),
       .inst(inst),
       .BrEq(BrEq_signal),
@@ -90,7 +90,8 @@ module Riscv151 #(
     reg [31:0] PC_plus_4_ex_ff_d;
     //might be buggy
     always @(posedge clk) begin
-      PC_next_addr <= rst ? 0 : PC_next_d;
+      //This is not needed anymore as the rst is handled in PCSel now
+      // PC_next_addr <= rst ? 0 : PC_next_d;
       PC_plus_4_ex_ff_d <= rst ? 0 : pc_plus_4;
     end
 
@@ -102,10 +103,11 @@ module Riscv151 #(
     wire [31:0] ALU_out;
 
     // Can we parametrize the bit width of the mux
-    twoonemux PCSel_mux (
+    threeonemux PCSel_mux (
         .sel(PCSel_signal),
         .s0(pc_plus_4),
         .s1(ALU_out),
+        .s2(PC_next_q),
         .out(PC_next_d)
     );
 
@@ -116,7 +118,7 @@ module Riscv151 #(
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
-      .addra(PC_next_addr[13:2]),
+      .addra(PC_next_d[13:2]),
       .douta(bios_douta),
       .enb(bios_enb),
       .addrb(bios_addrb[13:2]),

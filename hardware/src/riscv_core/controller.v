@@ -53,7 +53,7 @@ module controller(
     input [31:0] inst,
     input BrEq,
     input BrLt,
-    output reg PCSel,
+    output reg [1:0] PCSel,
     output reg [1:0] InstSel,
     output reg RegWrEn,
     output reg [2:0] ImmSel,
@@ -79,7 +79,7 @@ module controller(
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs1
-   assign FA_2 = (mem_wb_inst_reg[11:7] != 0) && 
+   assign FA_2 = (mem_wb_inst_reg[11:7] != 0) &&
                  (ex_inst_reg[19:15] != 0) &&
                  (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                            ((mem_wb_state != `BRANCH) &&
@@ -91,7 +91,7 @@ module controller(
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
-   assign FB_2 = (mem_wb_inst_reg[11:7] != 0) && 
+   assign FB_2 = (mem_wb_inst_reg[11:7] != 0) &&
                  (ex_inst_reg[24:20] != 0) &&
                  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
@@ -105,8 +105,8 @@ module controller(
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs1
-   assign FA_1 = (mem_wb_inst_reg[11:7] != 0) && 
-                 (inst[19:15] != 0) && 
+   assign FA_1 = (mem_wb_inst_reg[11:7] != 0) &&
+                 (inst[19:15] != 0) &&
                  (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                        ((mem_wb_state != `BRANCH) &&
                        (mem_wb_state != `STORE) &&
@@ -117,7 +117,7 @@ module controller(
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 = (mem_wb_inst_reg[11:7] != 0) && 
+   assign FB_1 = (mem_wb_inst_reg[11:7] != 0) &&
                  (inst[24:20] != 0) &&
                  (mem_wb_inst_reg[11:7] == inst[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
@@ -209,7 +209,7 @@ module controller(
             InstSel = 2;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
-                `BEQ: PCSel = BrEq ? 1 : 0;
+                `BEQ: PCSel = BrEq ? 1 : 2;
                 `BNE: PCSel = BrEq ? 0 : 1;
                 `BLT: PCSel = BrLt ? 1 : 0;
                 `BGE: PCSel = !BrLt ? 1 : 0;
@@ -297,7 +297,7 @@ module controller(
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
-            PCSel = 0;
+            PCSel = 2;
         end
         endcase
     end
