@@ -1,8 +1,8 @@
 `define LOAD_BYTE 0
 `define LOAD_HALFWORD 1
 `define LOAD_WORD 2
-`define LOAD_UNSIGNED_BYTE 3
-`define LOAD_UNSIGNED_HALFWORD 4
+`define LOAD_UNSIGNED_BYTE 4
+`define LOAD_UNSIGNED_HALFWORD 5
 
 /**
 sel - select the correct format of data to be loaded

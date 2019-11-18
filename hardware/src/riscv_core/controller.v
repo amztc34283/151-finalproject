@@ -85,9 +85,9 @@ module controller(
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
-                   ((ex_state != `LUI) && (ex_state != `AUIPC) && 
-                   (ex_state != `JAL) && (ex_state != `CSRWI) && 
-                   (ex_state != `X)); 
+                   ((ex_state != `LUI) && (ex_state != `AUIPC) &&
+                   (ex_state != `JAL) && (ex_state != `CSRWI) &&
+                   (ex_state != `X));
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
@@ -100,7 +100,7 @@ module controller(
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
                    (ex_state != `JAL) && (ex_state != `CSRWI) &&
                    (ex_state != `JALR) && (ex_state != `LOAD) &&
-                   (ex_state != `I) && (ex_state != `X)); 
+                   (ex_state != `I) && (ex_state != `X));
 
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
@@ -109,11 +109,11 @@ module controller(
                  (inst[19:15] != 0) && 
                  (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                        ((mem_wb_state != `BRANCH) &&
-                       (mem_wb_state != `STORE) && 
+                       (mem_wb_state != `STORE) &&
                        (mem_wb_state != `X)) &&
                    ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) && 
-                   (inst[6:2] != `X)); 
+                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
+                   (inst[6:2] != `X));
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
@@ -126,7 +126,7 @@ module controller(
                    ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) &&
                    (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
                    (inst[6:2] != `JALR) && (inst[6:2] != `LOAD) &&
-                   (inst[6:2] != `I) && (inst[6:2] != `X)); 
+                   (inst[6:2] != `I) && (inst[6:2] != `X));
 
     always @(posedge clk) begin
         if (rst) begin

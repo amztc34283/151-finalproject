@@ -3,7 +3,7 @@
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR REGFILE ARRAY INDEXED WITH reg_number */
 `define REGFILE_ARRAY_PATH CPU.rf.registers[reg_number]
 
-module assembly_rtype_testbench();
+module assembly_store_and_load_testbench();
     reg clk, rst;
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
@@ -43,14 +43,14 @@ module assembly_rtype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/rtype.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_tests/store_and_load.hex", CPU.bios_mem.mem);
 
         // `ifndef IVERILOG
         //     $vcdpluson;
         // `endif
         `ifdef IVERILOG
-            $dumpfile("assembly_rtype_testbench.fst");
-            $dumpvars(0,assembly_rtype_testbench);
+            $dumpfile("assembly_store_and_load_testbench.fst");
+            $dumpvars(0,assembly_store_and_load_testbench);
         `endif
 
         rst = 0;
@@ -65,43 +65,27 @@ module assembly_rtype_testbench();
             begin
                 // Your processor should begin executing the code in /software/assembly_tests/start.s
 
-                // Test ADD
+                // Test 1
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
-                check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
+                check_reg(1, 32'd100, 1);               // Verify that x1 contains 300
 
-                // Test AND
-                wait_for_reg_to_equal(20, 32'd2);       // Run the simulation until the flag is set to 3
-                check_reg(1, 32'h00000040, 1);
+                // Test 2
+                wait_for_reg_to_equal(20, 32'd2);
+                check_reg(1, 32'hFFFFFF80, 2);
 
-                // Test OR
-                wait_for_reg_to_equal(20, 32'd3);       // Run the simulation until the flag is set to 4
-                check_reg(1, 32'h000000EC, 1);
+                // Test 3
+                wait_for_reg_to_equal(20, 32'd3);
+                check_reg(1, 32'h00000080, 3);
 
-                // Test XOR
+                // Test 4
                 wait_for_reg_to_equal(20, 32'd4);
-                check_reg(1, 32'h000000AC, 1);
+                check_reg(1, 32'h00000080, 4);
 
-                // Test SLL
+                // Test 5
                 wait_for_reg_to_equal(20, 32'd5);
-                check_reg(1, 32'h00000000, 1);
+                check_reg(1, 32'h00008080, 5);
 
-                // Test SLT
-                wait_for_reg_to_equal(20, 32'd6);
-                check_reg(1, 32'h00000001, 1);
-
-                // Test SLTU
-                wait_for_reg_to_equal(20, 32'd7);
-                check_reg(1, 32'h00000000, 1);
-
-                // Test SRL
-                wait_for_reg_to_equal(20, 32'd8);
-                check_reg(1, 32'h0000001F, 1);
-
-                // Test SRA
-                wait_for_reg_to_equal(20, 32'd9);
-                check_reg(1, 32'h0000001F, 1);
-
-                $display("ALL BASIC R-TYPE ASSEMBLY TESTS PASSED");
+                $display("ALL BASIC LOAD_AND_STORE ASSEMBLY TESTS PASSED");
                 done = 1;
             end
             begin
