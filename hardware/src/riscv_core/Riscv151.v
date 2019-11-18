@@ -63,8 +63,8 @@ module Riscv151 #(
       .ALUSel(ALUSel_signal),
       .MemRW(MemRW_signal),
       .WBSel(WBSel_signal),
-      .FA_1(),
-      .FB_1(),
+      .FA_1(FA_1_signal),
+      .FB_1(FB_1_signal),
       .FA_2(FA_2_signal),
       .FB_2(FB_2_signal),
       .LdSel(LdSel_signal),
@@ -151,6 +151,25 @@ module Riscv151 #(
         .imm_out(imm_out)
     );
 
+    /********************* MUXES BEFORE PIPELINE REGISTER **********************/
+
+    wire [31:0] FA_1_out;
+    wire [31:0] FB_1_out;
+
+    twoonemux FA_1_mux (
+        .sel(FA_1_signal),
+        .s0(rd1),
+        .s1(wd),
+        .out(FA_1_out)
+    );
+
+    twoonemux FB_1_mux (
+        .sel(FB_1_signal),
+        .s0(rd2),
+        .s1(wd),
+        .out(FB_1_out)
+    );
+
     /********************* Before second pipeline register is implemented above *******************/
 
     // Pipeline Registers IF/D -> Ex Stage
@@ -176,7 +195,7 @@ module Riscv151 #(
 
     wire [31:0] rd1_ex;
     d_ff rs1_ex_ff (
-        .d(rd1),
+        .d(FA_1_out),
         .clk(clk),
         .rst(rst),
         .q(rd1_ex)
@@ -184,7 +203,7 @@ module Riscv151 #(
 
     wire [31:0] rd2_ex;
     d_ff rs2_ex_ff (
-        .d(rd2),
+        .d(FB_1_out),
         .clk(clk),
         .rst(rst),
         .q(rd2_ex)

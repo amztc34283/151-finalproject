@@ -58,6 +58,7 @@ module assembly_itype_testbench();
         // Reset the CPU
         rst = 1;
         repeat (30) @(posedge clk);             // Hold reset for 30 cycles
+        #1;
         rst = 0;
 
         fork

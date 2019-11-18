@@ -68,7 +68,7 @@ module ld_sel_testbench();
         end
 
         //Load unsigned byte
-        sel = 3;
+        sel = 4;
         offset = 0;
         din = 32'hffffffff;
         #1;
@@ -82,7 +82,7 @@ module ld_sel_testbench();
         end
 
         //Load unsigned halfword
-        sel = 4;
+        sel = 5;
         offset = 0;
         din = 32'hffffffff;
         #1;
@@ -126,7 +126,7 @@ module ld_sel_testbench();
         end
 
         //Load unsigned byte
-        sel = 3;
+        sel = 4;
         offset = 2;
         din = 32'hffffffff;
         #1;
@@ -140,7 +140,7 @@ module ld_sel_testbench();
         end
 
         //Load unsigned halfword
-        sel = 4;
+        sel = 5;
         offset = 0;
         din = 32'hffffffff;
         #1;
@@ -153,8 +153,8 @@ module ld_sel_testbench();
             $display("Failed Load unsigned Halfword with zero offset Test Case");
         end
 
-        //Default case should be zero (4 < sel)
-        sel = 5;
+        //Default case should be zero (!(0,1,2,4,5))
+        sel = 6;
         offset = 0;
         #1;
         if (dout != 32'h00000000) begin
