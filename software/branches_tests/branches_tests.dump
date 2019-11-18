@@ -1,0 +1,49 @@
+
+branches_tests.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+40000000 <_start>:
+40000000:	06400113          	li	x2,100
+40000004:	00000463          	beqz	x0,4000000c <branch1>
+40000008:	07b00113          	li	x2,123
+
+4000000c <branch1>:
+4000000c:	1f400093          	li	x1,500
+40000010:	00200a13          	li	x20,2
+40000014:	fe000013          	li	x0,-32
+40000018:	fe000013          	li	x0,-32
+4000001c:	fe000013          	li	x0,-32
+40000020:	fff00513          	li	x10,-1
+40000024:	06400113          	li	x2,100
+40000028:	12c00093          	li	x1,300
+4000002c:	00a00a63          	beq	x0,x10,40000040 <branch2>
+40000030:	06f00113          	li	x2,111
+40000034:	3e800013          	li	x0,1000
+40000038:	3e800013          	li	x0,1000
+4000003c:	0080006f          	j	40000044 <done2>
+
+40000040 <branch2>:
+40000040:	1f500093          	li	x1,501
+
+40000044 <done2>:
+40000044:	00300a13          	li	x20,3
+
+40000048 <Done>:
+40000048:	0000006f          	j	40000048 <Done>
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1941                	addi	x18,x18,-16
+   2:	0000                	unimp
+   4:	7200                	flw	f8,32(x12)
+   6:	7369                	lui	x6,0xffffa
+   8:	01007663          	bgeu	x0,x16,14 <_start-0x3fffffec>
+   c:	0000000f          	fence	unknown,unknown
+  10:	7205                	lui	x4,0xfffe1
+  12:	3376                	fld	f6,376(x2)
+  14:	6932                	flw	f18,12(x2)
+  16:	7032                	flw	f0,44(x2)
+  18:	0030                	addi	x12,x2,8
