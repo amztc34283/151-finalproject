@@ -175,7 +175,7 @@ module controller(
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -187,7 +187,7 @@ module controller(
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -240,7 +240,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -252,7 +252,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
          end
@@ -264,7 +264,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
          end
@@ -276,7 +276,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -288,7 +288,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
         end
         endcase
@@ -343,7 +343,7 @@ module controller(
         end
         default: begin
             LdSel = `LOAD_X;
-            WBSel = `WBSel_X;
+            WBSel = 0;
             RegWrEn = 0;
         end
         endcase

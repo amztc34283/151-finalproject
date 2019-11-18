@@ -75,14 +75,6 @@ module Riscv151 #(
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
 
-    reg [31:0] PC_next_addr;
-
-    //might be buggy
-    always @(posedge clk) begin
-      PC_next_addr <= rst ? 0 : PC_next_d;
-    end
-    // assign PC_next_addr = rst ? 0 : PC_next_d;
-
     //Pipeline register at IF
     d_ff PC_if_ff (
         .d(PC_next_d),
@@ -92,6 +84,16 @@ module Riscv151 #(
     );
 
     wire [31:0] pc_plus_4;
+
+
+    reg [31:0] PC_next_addr;
+    reg [31:0] PC_plus_4_ex_ff_d;
+    //might be buggy
+    always @(posedge clk) begin
+      PC_next_addr <= rst ? 0 : PC_next_d;
+      PC_plus_4_ex_ff_d <= rst ? 0 : pc_plus_4;
+    end
+
     pc_addr pc_plus_four (
         .PC(PC_next_q),
         .PC_out(pc_plus_4)
@@ -158,7 +160,7 @@ module Riscv151 #(
     // PC => ALU, PC+4 => WB/Regfile
     wire [31:0] PC_plus_4_ex;
     d_ff PC_plus_4_ex_ff (
-        .d(PC_plus_4),
+        .d(PC_plus_4_ex_ff_d),
         .clk(clk),
         .rst(rst),
         .q(PC_plus_4_ex)
@@ -248,7 +250,6 @@ module Riscv151 #(
         .sel(ALUSel_signal),
         .res(ALU_out)
     );
-
     wire [3:0] dmem_we;
     s_sel ssel(
         .sel(SSel_signal),
