@@ -43,21 +43,22 @@ module assembly_jtype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/assembly_tests.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_tests/jtype.hex", CPU.bios_mem.mem);
 
         // `ifndef IVERILOG
         //     $vcdpluson;
         // `endif
         `ifdef IVERILOG
-            $dumpfile("assembly_testbench.fst");
-            $dumpvars(0,assembly_testbench);
+            $dumpfile("assembly_jtype_testbench.fst");
+            $dumpvars(0,assembly_jtype_testbench);
         `endif
 
         rst = 0;
 
         // Reset the CPU
         rst = 1;
-        repeat (30) @(posedge clk);             // Hold reset for 30 cycles
+        repeat (1) @(posedge clk);             // Hold reset for 30 cycles
+        #1;
         rst = 0;
 
         fork
@@ -67,7 +68,10 @@ module assembly_jtype_testbench();
                 // Test JAL
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
+                check_reg(3, 32'd12, 1);
 
+                wait_for_reg_to_equal(20, 32'd2);
+                check_reg(1, -32'd164, 1);
                 $display("ALL BASIC J-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end

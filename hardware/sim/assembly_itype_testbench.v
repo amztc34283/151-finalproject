@@ -101,6 +101,14 @@ module assembly_itype_testbench();
                 wait_for_reg_to_equal(20, 32'd9);
                 check_reg(1, 32'h0000001F, 1);
 
+                // Test LUI
+                wait_for_reg_to_equal(20, 32'd10);
+                check_reg(1, 32'h00001000, 1);
+
+                // Test AUIPC
+                wait_for_reg_to_equal(20, 32'd11);
+                check_reg(1, 32'h0000005C, 1);
+
                 $display("ALL BASIC I-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end

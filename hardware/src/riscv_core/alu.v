@@ -6,7 +6,7 @@
 `define ALU_ANDI 5
 `define ALU_SLLI 6
 `define ALU_SRLI 7
-`define ALU_SRAI 8 
+`define ALU_SRAI 8
 `define ALU_ADD 9
 `define ALU_SUB 10
 `define ALU_SLL 11
@@ -39,7 +39,7 @@ module alu (
 
     always @(*) begin
         case(sel)
-            `ADD:  res = ($signed(op1)) + ($unsigned(op2));                // 1
+            `ADD:  res = ($signed(op1)) + ($signed(op2));                // 1
             `SLT:  res = ($signed(op1)) < ($signed(op2)) ? 1 : 0;          // 2
             `SLTU: res = ($unsigned(op1)) < ($unsigned(op2)) ? 1 : 0;      // 3
             `XOR:  res = ($unsigned(op1)) ^ ($unsigned(op2));              // 4
@@ -142,51 +142,51 @@ endmodule
 // OR rd,rs1,rs2	Or	rd �? ux(rs1) ∨ ux(rs2)
 // AND rd,rs1,rs2	And	rd �? ux(rs1) ∧ ux(rs2)
 
-// imm[11:0] rs1 000 rd 0010011 ADDI 
-// imm[11:0] rs1 010 rd 0010011 SLTI 
-// imm[11:0] rs1 011 rd 0010011 SLTIU 
-// imm[11:0] rs1 100 rd 0010011 XORI 
-// imm[11:0] rs1 110 rd 0010011 ORI 
-// imm[11:0] rs1 111 rd 0010011 ANDI 
-// 0000000 shamt rs1 001 rd 0010011 SLLI 
-// 0000000 shamt rs1 101 rd 0010011 SRLI 
-// 0100000 shamt rs1 101 rd 0010011 SRAI 
+// imm[11:0] rs1 000 rd 0010011 ADDI
+// imm[11:0] rs1 010 rd 0010011 SLTI
+// imm[11:0] rs1 011 rd 0010011 SLTIU
+// imm[11:0] rs1 100 rd 0010011 XORI
+// imm[11:0] rs1 110 rd 0010011 ORI
+// imm[11:0] rs1 111 rd 0010011 ANDI
+// 0000000 shamt rs1 001 rd 0010011 SLLI
+// 0000000 shamt rs1 101 rd 0010011 SRLI
+// 0100000 shamt rs1 101 rd 0010011 SRAI
 
 // 0000000 rs2 rs1 000 rd 0110011 ADD
-// 0000000 rs2 rs1 001 rd 0110011 SLL 
-// 0000000 rs2 rs1 010 rd 0110011 SLT 
-// 0000000 rs2 rs1 011 rd 0110011 SLTU 
-// 0000000 rs2 rs1 100 rd 0110011 XOR 
-// 0000000 rs2 rs1 101 rd 0110011 SRL 
-// 0100000 rs2 rs1 101 rd 0110011 SRA 
-// 0000000 rs2 rs1 110 rd 0110011 OR 
+// 0000000 rs2 rs1 001 rd 0110011 SLL
+// 0000000 rs2 rs1 010 rd 0110011 SLT
+// 0000000 rs2 rs1 011 rd 0110011 SLTU
+// 0000000 rs2 rs1 100 rd 0110011 XOR
+// 0000000 rs2 rs1 101 rd 0110011 SRL
+// 0100000 rs2 rs1 101 rd 0110011 SRA
+// 0000000 rs2 rs1 110 rd 0110011 OR
 // 0000000 rs2 rs1 111 rd 0110011 AND
 
-// 0100000 rs2 rs1 000 rd 0110011 SUB 
+// 0100000 rs2 rs1 000 rd 0110011 SUB
 
 // imm[11:0] rs1 000 rd 0010011 ADDI
 // 0000000 rs2 rs1 000 rd 0110011 ADD
 
 // imm[11:0] rs1 010 rd 0010011 SLTI
-// 0000000 rs2 rs1 010 rd 0110011 SLT 
+// 0000000 rs2 rs1 010 rd 0110011 SLT
 
-// imm[11:0] rs1 011 rd 0010011 SLTIU 
+// imm[11:0] rs1 011 rd 0010011 SLTIU
 // 0000000 rs2 rs1 011 rd 0110011 SLTU
 
-// imm[11:0] rs1 100 rd 0010011 XORI 
-// 0000000 rs2 rs1 100 rd 0110011 XOR 
+// imm[11:0] rs1 100 rd 0010011 XORI
+// 0000000 rs2 rs1 100 rd 0110011 XOR
 
 // imm[11:0] rs1 110 rd 0010011 ORI
-// 0000000 rs2 rs1 110 rd 0110011 OR 
+// 0000000 rs2 rs1 110 rd 0110011 OR
 
-// imm[11:0] rs1 111 rd 0010011 ANDI 
+// imm[11:0] rs1 111 rd 0010011 ANDI
 // 0000000 rs2 rs1 111 rd 0110011 AND
 
-// 0000000 shamt rs1 001 rd 0010011 SLLI 
-// 0000000 rs2 rs1 001 rd 0110011 SLL 
+// 0000000 shamt rs1 001 rd 0010011 SLLI
+// 0000000 rs2 rs1 001 rd 0110011 SLL
 
-// 0000000 shamt rs1 101 rd 0010011 SRLI 
-// 0000000 rs2 rs1 101 rd 0110011 SRL 
+// 0000000 shamt rs1 101 rd 0010011 SRLI
+// 0000000 rs2 rs1 101 rd 0110011 SRL
 
-// 0100000 shamt rs1 101 rd 0010011 SRAI 
-// 0100000 rs2 rs1 101 rd 0110011 SRA 
+// 0100000 shamt rs1 101 rd 0010011 SRAI
+// 0100000 rs2 rs1 101 rd 0110011 SRA

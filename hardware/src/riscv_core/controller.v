@@ -210,11 +210,11 @@ module controller(
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 2;
-                `BNE: PCSel = BrEq ? 0 : 1;
-                `BLT: PCSel = BrLt ? 1 : 0;
-                `BGE: PCSel = !BrLt ? 1 : 0;
-                `BLTU: PCSel = BrLt ? 1 : 0;
-                `BGEU: PCSel = !BrLt ? 1 : 0;
+                `BNE: PCSel = BrEq ? 2 : 1;
+                `BLT: PCSel = BrLt ? 1 : 2;
+                `BGE: PCSel = !BrLt ? 1 : 2;
+                `BLTU: PCSel = BrLt ? 1 : 2;
+                `BGEU: PCSel = !BrLt ? 1 : 2;
             endcase
 
         end
@@ -256,7 +256,8 @@ module controller(
             ASel = 0;
             BSel = 1;
             BrUn = 0;
-            ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
+            //ALUSel should not use ex_inst_reg[30] for ADDI, SLTI, SLTIU, XORI, ORI, ANDI
+            ALUSel = (ex_inst_reg[14:12] == 3'b001 || ex_inst_reg[14:12] == 3'b101) ? {ex_inst_reg[30], ex_inst_reg[14:12]} : {1'b0, ex_inst_reg[14:12]};
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test

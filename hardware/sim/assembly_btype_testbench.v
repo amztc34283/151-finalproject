@@ -76,6 +76,40 @@ module assembly_btype_testbench();
                 check_reg(2, 32'd111, 2);               // Verify that x2 contains 111
                 check_reg(1, 32'd300, 2);               // Verify that x1 contains 300
 
+                // Test bne, branch not taken
+                wait_for_reg_to_equal(20, 32'd4);
+                check_reg(1, 32'd2, 3);
+                // Test bne, branch taken
+                wait_for_reg_to_equal(20, 32'd5);
+                check_reg(1, 32'd2, 3);
+
+                // Test blt, branch not taken
+                wait_for_reg_to_equal(20, 32'd6);
+                check_reg(2, 32'd2, 4);
+                wait_for_reg_to_equal(20, 32'd7);
+                check_reg(1, 32'd1000, 4);
+                wait_for_reg_to_equal(20, 32'd7);
+                check_reg(2, 32'h0000009C, 4);
+                // Test blt branch taken
+                wait_for_reg_to_equal(20, 32'd8);
+                check_reg(1, 32'd12345, 4);
+
+                // Test bge branch taken
+                wait_for_reg_to_equal(20, 32'd9);
+                check_reg(1, 32'h80000000, 5);
+                // Test bge branch not taken
+                wait_for_reg_to_equal(20, 32'd10);
+                check_reg(1, 32'd2, 5);
+
+                //Test bltu branch not taken
+                wait_for_reg_to_equal(20, 32'd11);
+                check_reg(2, 32'd2, 6);
+                check_reg(10, -32'd1, 6);
+                check_reg(11, 32'd1, 6);
+                // wait_for_reg_to_equal(20, 32'd12);
+                // check_reg(1, 32'd0, 6);
+
+
                 $display("ALL BASIC B-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end

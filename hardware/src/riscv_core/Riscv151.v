@@ -85,16 +85,6 @@ module Riscv151 #(
 
     wire [31:0] pc_plus_4;
 
-
-    reg [31:0] PC_next_addr;
-    reg [31:0] PC_plus_4_ex_ff_d;
-    //might be buggy
-    always @(posedge clk) begin
-      //This is not needed anymore as the rst is handled in PCSel now
-      // PC_next_addr <= rst ? 0 : PC_next_d;
-      PC_plus_4_ex_ff_d <= rst ? 0 : pc_plus_4;
-    end
-
     pc_addr pc_plus_four (
         .PC(PC_next_q),
         .PC_out(pc_plus_4)
@@ -181,7 +171,7 @@ module Riscv151 #(
     // PC => ALU, PC+4 => WB/Regfile
     wire [31:0] PC_plus_4_ex;
     d_ff PC_plus_4_ex_ff (
-        .d(PC_plus_4_ex_ff_d),
+        .d(pc_plus_4),
         .clk(clk),
         .rst(rst),
         .q(PC_plus_4_ex)

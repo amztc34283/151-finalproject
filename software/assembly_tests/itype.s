@@ -50,7 +50,13 @@ li x20, 8
 srai x1, x10, 5  #0000001F
 li x20, 9
 
-# TODO JALR
+# Test LUI
+lui x1, 1
+li x20, 10
+
+# Test AUIPC
+auipc x1, 0
+li x20, 11
 
 # TODO LB, LH, LW, LBU, LHU
 
