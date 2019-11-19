@@ -101,13 +101,23 @@ module assembly_btype_testbench();
                 wait_for_reg_to_equal(20, 32'd10);
                 check_reg(1, 32'd2, 5);
 
-                //Test bltu branch not taken
+                // Test bltu branch not taken
                 wait_for_reg_to_equal(20, 32'd11);
                 check_reg(2, 32'd2, 6);
                 check_reg(10, -32'd1, 6);
                 check_reg(11, 32'd1, 6);
-                // wait_for_reg_to_equal(20, 32'd12);
-                // check_reg(1, 32'd0, 6);
+                wait_for_reg_to_equal(20, 32'd12);
+                check_reg(1, 32'd0, 6);
+                // Test bltu branch taken
+                wait_for_reg_to_equal(20, 32'd13);
+                check_reg(1, 32'd0, 6);
+
+                // Test bgeu branch taken
+                wait_for_reg_to_equal(20, 32'd14);
+                check_reg(1, 32'd123, 7);
+                // Test bgeu branch not taken
+                wait_for_reg_to_equal(20, 32'd15);
+                check_reg(1, 32'd2, 7);
 
 
                 $display("ALL BASIC B-TYPE ASSEMBLY TESTS PASSED");

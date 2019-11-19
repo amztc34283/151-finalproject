@@ -81,7 +81,7 @@ add x1, x10, x11 # This should be skipped
 done6: sll x1, x10, x12 # x1 = 80000000
 li x20, 9
 
-# Test BGE Branch Not Taken ()
+# Test BGE Branch Not Taken
 li x10, 1
 li x11, 2
 bge x10, x11, branch7
@@ -91,18 +91,38 @@ j done7
 branch7: li x1, 200
 done7: li x20, 10
 
-# Test BLTU Branch Not Taken ()
+# Test BLTU Branch Not Taken
 li x10, -1
 li x11, 1
 branch8: add x2, x11, x11 # This should be executed once, should not be infinite loop
 li x20, 11 # check x2 value at the moment
-#bltu x10, x11, branch8
-#add x1, x10, x11 # This should not be skipped
-#jal x3, done8
-#done8: addi x2, x3, 0
-#li x20, 12
+bltu x10, x11, branch8
+add x1, x10, x11 # This should not be skipped
+jal x3, done8
+done8: addi x2, x3, 0
+li x20, 12
 
-# Test BGEU
+# Test BLTU Branch Taken ()
+li x10, 1
+li x11, -1
+addi x1, x10, 1
+bltu x10, x11, done9
+done9: add x1, x0, x0
+li x20, 13
 
+# Test BGEU Branch Taken ()
+li x10, -1
+li x11, -1
+bgeu x10, x11, done10
+j Done # This should be skipped
+done10: addi x1, x0, 123
+li x20, 14
+
+# Test BGEU Branch Not Taken ()
+branch9: li x10, 1
+li x11, -1
+bgeu x10, x11, branch9
+sub x1, x10, x11
+li x20, 15
 
 Done: j Done
