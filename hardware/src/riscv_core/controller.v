@@ -89,7 +89,7 @@ module controller(
                 (mem_wb_state != `X)) &&
                 ((ex_state != `LUI) && (ex_state != `AUIPC) &&
                 (ex_state != `JAL) && (ex_state != `X)) :
-                (mem_wb_inst_reg[11:7]  != 0) && 
+                (mem_wb_inst_reg[11:7]  != 0) &&
                 (ex_inst_reg[19:15] != 0) &&
                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                 ((mem_wb_state != `BRANCH) &&
@@ -99,7 +99,7 @@ module controller(
                 (ex_state != `JAL) && (ex_state != `X));
 
 
-    // assign FA_2 = (mem_wb_inst_reg[11:7]  != 0) && 
+    // assign FA_2 = (mem_wb_inst_reg[11:7]  != 0) &&
     //             (ex_inst_reg[19:15] != 0) &&
     //             (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
     //             ((mem_wb_state != `BRANCH) &&
@@ -113,15 +113,15 @@ module controller(
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
-   assign FB_2 =  (mem_wb_inst_reg[11:7] != 0) && 
+   assign FB_2 =  (mem_wb_inst_reg[11:7] != 0) &&
                  (ex_inst_reg[24:20] != 0) &&
                  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                   (ex_state != `JAL) && (ex_state != `JALR) && 
-                   (ex_state != `LOAD) && (ex_state != `I) && 
+                   (ex_state != `JAL) && (ex_state != `JALR) &&
+                   (ex_state != `LOAD) && (ex_state != `I) &&
                    (ex_state != `X) && (ex_state != `CSRW));
 
 
@@ -129,7 +129,7 @@ module controller(
    // and instruction in if/decode uses rs1
    // if CSRW then dont compare x0s
    // if not CSRW then compare x0s
-   assign FA_1 = inst[6:2] == `CSRW ? 
+   assign FA_1 = inst[6:2] == `CSRW ?
                     (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                     ((mem_wb_state != `BRANCH) &&
                     (mem_wb_state != `STORE) &&
@@ -137,7 +137,7 @@ module controller(
                     ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
                     (inst[6:2] != `JAL) &&  (inst[6:2] != `X)) :
                 (mem_wb_inst_reg[11:7] == inst[19:15]) &&
-                (mem_wb_inst_reg[11:7] != 0) && 
+                (mem_wb_inst_reg[11:7] != 0) &&
                 (inst[19:15] != 0) && ((mem_wb_state != `BRANCH) &&
                 (mem_wb_state != `STORE) &&
                 (mem_wb_state != `X)) &&
@@ -145,8 +145,8 @@ module controller(
                 (inst[6:2] != `JAL) &&  (inst[6:2] != `X));
 
 //    assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
-//                 (mem_wb_inst_reg[11:7] != 0) && 
-//                 (inst[19:15] != 0) && 
+//                 (mem_wb_inst_reg[11:7] != 0) &&
+//                 (inst[19:15] != 0) &&
 //                 ((mem_wb_state != `BRANCH) &&
 //                 (mem_wb_state != `STORE) &&
 //                 (mem_wb_state != `X)) &&
@@ -156,15 +156,15 @@ module controller(
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 =  (mem_wb_inst_reg[11:7] != 0) && 
+   assign FB_1 =  (mem_wb_inst_reg[11:7] != 0) &&
                  (inst[24:20] != 0) &&
                  (mem_wb_inst_reg[11:7] == inst[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
                    ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) &&
-                   (inst[6:2] != `JAL) && (inst[6:2] != `JALR) && 
-                   (inst[6:2] != `LOAD) && (inst[6:2] != `I) && 
+                   (inst[6:2] != `JAL) && (inst[6:2] != `JALR) &&
+                   (inst[6:2] != `LOAD) && (inst[6:2] != `I) &&
                    (inst[6:2] != `X) && (inst[6:2] != `CSRW));
 
     always @(posedge clk) begin
@@ -223,7 +223,8 @@ module controller(
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -238,7 +239,8 @@ module controller(
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -300,7 +302,8 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -316,7 +319,8 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -331,7 +335,8 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -346,7 +351,8 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -360,7 +366,8 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 0;
 
             CSREn = 1;
@@ -374,7 +381,8 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            // InstSel = 1;
+            InstSel = pc_30 ? 1 : 0;
             PCSel = 2;
 
             CSREn = 0;

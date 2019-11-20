@@ -9,7 +9,7 @@ module Riscv151 #(
 );
 
     wire [31:0] imem_dina, imem_doutb;
-    wire [31:0] imem_addra, imem_addrb;
+    wire [31:0] imem_addra;
     wire [3:0] imem_wea;
     wire imem_ena;
     // Remove the comment at step 9
@@ -17,9 +17,9 @@ module Riscv151 #(
       .clk(clk),
       .ena(imem_ena),
       .wea(imem_wea),
-      .addra(imem_addra[13:0]),
+      .addra(imem_addra[15:2]),
       .dina(imem_dina),
-      .addrb(imem_addrb[13:0]),
+      .addrb(PC_next_d[15:2]),
       .doutb(imem_doutb)
     );
 
@@ -258,7 +258,7 @@ module Riscv151 #(
     always @(posedge clk) begin
         if (rst)
             CSRW_register <= 0;
-        else if (CSREn_signal) 
+        else if (CSREn_signal)
             CSRW_register <= CSReg_in;
     end
 

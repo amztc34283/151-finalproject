@@ -43,7 +43,7 @@ module assembly_btype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/branches_tests/branches_tests.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/branches_tests/branches_tests.hex", CPU.imem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;

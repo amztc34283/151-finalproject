@@ -43,7 +43,7 @@ module assembly_jtype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/jtype.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_tests/jtype.hex", CPU.imem.mem);
 
         // `ifndef IVERILOG
         //     $vcdpluson;
