@@ -38,6 +38,8 @@ module Riscv151 #(
     wire [3:0] ALUSel_signal;
     wire MemRW_signal;
     wire [1:0] WBSel_signal;
+    wire CSREn_signal,
+    wire CSRSel_signal,
     wire FA_1_signal;
     wire FB_1_signal;
     wire FA_2_signal;
@@ -61,6 +63,8 @@ module Riscv151 #(
       .BSel(BSel_signal),
       .ASel(ASel_signal),
       .ALUSel(ALUSel_signal),
+      .CSREn(CSREn_signal),
+      .CSRSel(CSRSel_signal),
       .MemRW(MemRW_signal),
       .WBSel(WBSel_signal),
       .FA_1(FA_1_signal),

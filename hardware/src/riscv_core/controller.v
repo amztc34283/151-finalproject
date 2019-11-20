@@ -8,8 +8,7 @@
 `define I 4
 `define AUIPC 5
 `define LUI 13
-`define CSRW 16
-`define CSRWI 17
+`define CSRW 28
 
 `define SUB 8
 `define ADD 0
@@ -61,6 +60,8 @@ module controller(
     output reg BSel,
     output reg ASel,
     output reg [3:0] ALUSel,
+    output reg CSREn,
+    output reg CSRSel,
     output reg MemRW,
     output reg [1:0] WBSel,
     output FA_1,
@@ -86,8 +87,7 @@ module controller(
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                   (ex_state != `JAL) && (ex_state != `CSRWI) &&
-                   (ex_state != `X));
+                   (ex_state != `JAL) && (ex_state != `X));
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
@@ -98,9 +98,9 @@ module controller(
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                   (ex_state != `JAL) && (ex_state != `CSRWI) &&
-                   (ex_state != `JALR) && (ex_state != `LOAD) &&
-                   (ex_state != `I) && (ex_state != `X));
+                   (ex_state != `JAL) && (ex_state != `JALR) && 
+                   (ex_state != `LOAD) && (ex_state != `I) && 
+                   (ex_state != `X) && (ex_state != `CSRW));
 
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
@@ -112,8 +112,7 @@ module controller(
                        (mem_wb_state != `STORE) &&
                        (mem_wb_state != `X)) &&
                    ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
-                   (inst[6:2] != `X));
+                   (inst[6:2] != `JAL) &&  (inst[6:2] != `X));
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
@@ -124,9 +123,9 @@ module controller(
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
                    ((inst[6:2] != `LUI) && (inst[6:2]!= `AUIPC) &&
-                   (inst[6:2] != `JAL) && (inst[6:2] != `CSRWI) &&
-                   (inst[6:2] != `JALR) && (inst[6:2] != `LOAD) &&
-                   (inst[6:2] != `I) && (inst[6:2] != `X));
+                   (inst[6:2] != `JAL) && (inst[6:2] != `JALR) && 
+                   (inst[6:2] != `LOAD) && (inst[6:2] != `I) && 
+                   (inst[6:2] != `X) && (inst[6:2] != `CSRW));
 
     always @(posedge clk) begin
         if (rst) begin
@@ -167,6 +166,7 @@ module controller(
         `I:         ImmSel = `I_TYPE;
         `AUIPC:     ImmSel = `U_TYPE;
         `LUI:       ImmSel = `U_TYPE;
+        `CSRW:      ImmSel = `X_TYPE;
         default:    ImmSel = `X_TYPE;
         endcase
     end
@@ -183,7 +183,7 @@ module controller(
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 0;
 
         end
@@ -195,7 +195,7 @@ module controller(
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 0;
 
         end
@@ -209,12 +209,12 @@ module controller(
             InstSel = 2;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
-                `BEQ: PCSel = BrEq ? 1 : 2;
-                `BNE: PCSel = BrEq ? 2 : 1;
-                `BLT: PCSel = BrLt ? 1 : 2;
-                `BGE: PCSel = !BrLt ? 1 : 2;
-                `BLTU: PCSel = BrLt ? 1 : 2;
-                `BGEU: PCSel = !BrLt ? 1 : 2;
+                `BEQ: PCSel = BrEq ? 1 : 0;
+                `BNE: PCSel = BrEq ? 0 : 1;
+                `BLT: PCSel = BrLt ? 1 : 0;
+                `BGE: PCSel = !BrLt ? 1 : 0;
+                `BLTU: PCSel = BrLt ? 1 : 0;
+                `BGEU: PCSel = !BrLt ? 1 : 0;
             endcase
 
         end
@@ -248,7 +248,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 0;
 
         end
@@ -261,7 +261,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 0;
 
          end
@@ -273,7 +273,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 0;
 
          end
@@ -285,6 +285,17 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 0;
+            PCSel = 0;
+
+        end
+        `CSRW: begin
+            ASel = 0;
+            BSel = 0;
+            BrUn = 0;
+            ALUSel = `B;
+            MemRW = 0;
+            SSel = 3;
             InstSel = 1;
             PCSel = 0;
 
@@ -297,7 +308,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 1;
+            InstSel = 0;
             PCSel = 2;
         end
         endcase
@@ -309,51 +320,85 @@ module controller(
             LdSel = mem_wb_inst_reg[14:12];
             WBSel = 0;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
         end
         `STORE: begin
             LdSel = 7;
             WBSel = `WBSel_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `BRANCH: begin
             LdSel = 7;
             WBSel = `WBSel_X;
             RegWrEn = 0;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `JALR: begin
             LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `JAL: begin
             LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `R: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
         end
         `I: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `AUIPC: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `LUI: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
+            CSREn = 0;
+            CSRSel = 0;
+        end
+        `CSRW: begin
+            LdSel = 7;
+            WBSel = `WBSel_X;
+            RegWrEn = 0;
+            CSREn = 1;
+            CSRSel = mem_wb_inst_reg[14:12];
+            
         end
         default: begin
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
+            CSREn = 0;
+            CSRSel = 0;
         end
         endcase
     end
