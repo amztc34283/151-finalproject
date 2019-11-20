@@ -1,7 +1,7 @@
 `timescale 1ns/10ps
 
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR tohost (0x51e) CSR */
-`define CSR_PATH CPU.wd
+`define CSR_PATH CPU.CSRW_register
 
 module isa_testbench();
     reg clk, rst;
@@ -29,7 +29,7 @@ module isa_testbench();
         $value$plusargs("hex_file=%s", hex_file);
         $value$plusargs("test_name=%s", test_name);
         $readmemh(hex_file, CPU.dmem.mem);
-        $readmemh(hex_file, CPU.imem.mem);
+        $readmemh(hex_file, CPU.bios_mem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;

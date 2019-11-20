@@ -286,6 +286,7 @@ module Riscv151 #(
         .res(ALU_out)
     );
     wire [3:0] dmem_we;
+    wire [31:0] dmem_din;
     s_sel ssel(
         .sel(SSel_signal),
         .offset(ALU_out[1:0]),
@@ -297,7 +298,7 @@ module Riscv151 #(
 
     /*********** everything before MEM stage is implemented above ***********/
 
-    wire [31:0] dmem_din, dmem_dout;
+    wire [31:0] dmem_dout;
     dmem dmem (
       .clk(clk),
       .en(MemRW_signal),
