@@ -317,7 +317,7 @@ module controller(
         end
         `STORE: begin
             LdSel = 7;
-            WBSel = `WBSel_X; // Doesn't matter, since RegWrEn == 0
+            WBSel = `WBSEL_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
             CSREn = 0;
             CSRSel = 0;
