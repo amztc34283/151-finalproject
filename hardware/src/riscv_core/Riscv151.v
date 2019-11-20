@@ -13,15 +13,15 @@ module Riscv151 #(
     wire [3:0] imem_wea;
     wire imem_ena;
     // Remove the comment at step 9
-    // imem imem (
-    //   .clk(clk),
-    //   .ena(imem_ena),
-    //   .wea(imem_wea),
-    //   .addra(imem_addra[13:0]),
-    //   .dina(imem_dina),
-    //   .addrb(imem_addrb[13:0]),
-    //   .doutb(imem_doutb)
-    // );
+    imem imem (
+      .clk(clk),
+      .ena(imem_ena),
+      .wea(imem_wea),
+      .addra(imem_addra[13:0]),
+      .dina(imem_dina),
+      .addrb(imem_addrb[13:0]),
+      .doutb(imem_doutb)
+    );
 
 
     // Finish wiring modules
@@ -48,10 +48,12 @@ module Riscv151 #(
     wire [1:0] SSel_signal;
 
     wire [31:0] inst;
+    wire pc_30;
 
     controller controls(
       .rst(rst),
       .clk(clk),
+      .pc_30(pc_30),
       .inst(inst),
       .BrEq(BrEq_signal),
       .BrLt(BrLT_signal),
@@ -87,6 +89,9 @@ module Riscv151 #(
         .q(PC_next_q)
     );
 
+    // This is for Address Space Partitioning
+    assign pc_30 = PC_next_q[30];
+
     wire [31:0] pc_plus_4;
 
     pc_addr pc_plus_four (
@@ -121,7 +126,7 @@ module Riscv151 #(
 
     threeonemux InstSel_mux (
         .sel(InstSel_signal),
-        .s0(imem_douta),
+        .s0(imem_doutb),
         .s1(bios_douta),
         .s2(32'h00000013),
         .out(inst)

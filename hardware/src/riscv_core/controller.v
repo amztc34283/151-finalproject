@@ -49,6 +49,8 @@
 module controller(
     input rst,
     input clk,
+    //TODO: Use pc_30 for InstSel
+    input pc_30,
     input [31:0] inst,
     input BrEq,
     input BrLt,
