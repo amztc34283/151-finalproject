@@ -1,0 +1,39 @@
+    // Mem -> CSRW forwarding, rs1
+    // lw x2 0(x3)
+    // csrw tohost, x2
+    BrUn_e_b = 1'bx;
+    BrEq_in_b = 1'bx;
+    BrLt_in_b = 1'bx;
+    BSel_e_b = 0;
+    ASel_e_b = 0;
+    ALUSel_e_b = `B;
+    MemRW_e_b = 0;
+    LdSel_e_b = 7;
+    WBSel_e_b = `WBSEL_X;
+    PCSel_e_b = 0;
+    SSel_e_b = 3;
+    RegWrEn_e_b = 0; 
+    InstSel_e_b = 1;
+    ImmSel_e_b = `X_TYPE;
+    
+    CSREn_e_b = 1;
+    CSRSel_e_b = 0;
+
+    FA_1_e = 0;
+    FB_1_e = 0;
+    FA_2_e = 1;
+    FB_2_e = 0;
+
+    // lw x2 0(x3)
+    // csrw tohost, x2
+    `forward1_test("csrw_f1_lw_rs1_a", 32'h0001A103, "f1_csrw_b",  32'b0101_0001_1110_0000_1001_0000_0111_0011);
+
+
+    FA_1_e = 1;
+    FB_1_e = 0;
+    FA_2_e = 0;
+    FB_2_e = 0;
+    // lw x2 0(x3)
+    // csrw tohost, x2
+    `forward2_test("csrw_f1_lw_rs1_a", 32'h0001A103, "f1_csrwi_b",  32'b0101_0001_1110_0000_1001_0000_0111_0011);
+
