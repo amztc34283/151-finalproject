@@ -110,9 +110,13 @@ module Riscv151 #(
         .out(PC_next_d)
     );
 
-    wire [31:0] bios_addra, bios_addrb;
+    wire [31:0] bios_addra;
     wire [31:0] bios_douta, bios_doutb;
     wire bios_ena, bios_enb;
+    // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
+    // assign bios_ena = (PC_next_d[31:28] == 4'b0100) ? 1 : 0;
+    // assign bios_enb = (ALU_out[31:28] == 4'b0100) ? 1 : 0;
+    // Comment below and comment out above for bios inst testing
     assign bios_ena = 1;
     bios_mem bios_mem (
       .clk(clk),
@@ -120,7 +124,7 @@ module Riscv151 #(
       .addra(PC_next_d[13:2]),
       .douta(bios_douta),
       .enb(bios_enb),
-      .addrb(bios_addrb[13:2]),
+      .addrb(ALU_out[13:2]),
       .doutb(bios_doutb)
     );
 
@@ -259,8 +263,6 @@ module Riscv151 #(
     end
 
     branch_comp branch_compar (
-        // .ra1(rd1_ex),
-        // .ra2(rd2_ex),
         .ra1(FA_2_out),
         .ra2(FB_2_out),
         .BrUn(BrUn_signal),
@@ -271,7 +273,6 @@ module Riscv151 #(
     wire [31:0] Asel_out;
     twoonemux Asel_mux(
         .sel(ASel_signal),
-        // .s0(rd1_ex),
         .s0(FA_2_out),
         .s1(PC_Asel_ex),
         .out(Asel_out));
@@ -279,7 +280,6 @@ module Riscv151 #(
     wire [31:0] Bsel_out;
     twoonemux Bsel_mux(
         .sel(BSel_signal),
-        // .s0(rd2_ex),
         .s0(FB_2_out),
         .s1(imm_gen_ex),
         .out(Bsel_out));
@@ -295,7 +295,6 @@ module Riscv151 #(
     s_sel ssel(
         .sel(SSel_signal),
         .offset(ALU_out[1:0]),
-        // .rs2(rd2_ex),
         .rs2(FB_2_out),
         .dmem_we(dmem_we),
         .dmem_din(dmem_din)
@@ -305,12 +304,12 @@ module Riscv151 #(
 
     wire [31:0] dmem_dout;
     dmem dmem (
-      .clk(clk),
-      .en(MemRW_signal),
-      .we(dmem_we),
-      .addr(ALU_out[15:2]),
-      .din(dmem_din),
-      .dout(dmem_dout)
+        .clk(clk),
+        .en(MemRW_signal),
+        .we(dmem_we),
+        .addr(ALU_out[15:2]),
+        .din(dmem_din),
+        .dout(dmem_dout)
     );
 
     wire [31:0] alu_mem;
@@ -320,6 +319,13 @@ module Riscv151 #(
         .rst(rst),
         .q(alu_mem)
     );
+
+    wire [31:0] bios_dmem_signal;
+    twoonemux BIOS_DMEM_MUX (
+        .sel(alu_mem[30]),
+        .s0(dmem_dout),
+        .s1(bios_doutb),
+        .out(bios_dmem_signal));
 
     wire [31:0] pc_plus_4_mem;
     d_ff pc_plus_4_mem_ff (
@@ -334,7 +340,7 @@ module Riscv151 #(
     wire [31:0] ld_out;
     ld_sel ld(
         .sel(LdSel_signal),
-        .din(dmem_dout),
+        .din(bios_dmem_signal),
         .offset(alu_mem[1:0]), //getting it from instruction after mem stage
         .dout(ld_out)
     );
