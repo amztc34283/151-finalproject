@@ -220,6 +220,9 @@ module controller(
             InstSel = 2;
             PCSel = 1;
 
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `JAL: begin
             ASel = 1;
@@ -230,6 +233,9 @@ module controller(
             SSel = 3;
             PCSel = 1;
             InstSel = 2;
+
+            CSREn = 0;
+            CSRSel = 0;
 
         end
         `R: begin
@@ -242,6 +248,9 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
+
+            CSREn = 0;
+            CSRSel = 0;
 
         end
         `I: begin
@@ -256,6 +265,9 @@ module controller(
             InstSel = 1;
             PCSel = 0;
 
+            CSREn = 0;
+            CSRSel = 0;
+
          end
         `AUIPC: begin
             ASel = 1;
@@ -268,6 +280,9 @@ module controller(
             InstSel = 1;
             PCSel = 0;
 
+            CSREn = 0;
+            CSRSel = 0;
+
          end
         `LUI: begin
             ASel = 0;
@@ -280,6 +295,9 @@ module controller(
             InstSel = 1;
             PCSel = 0;
 
+            CSREn = 0;
+            CSRSel = 0;
+
         end
         `CSRW: begin
             ASel = 0;
@@ -291,6 +309,8 @@ module controller(
             InstSel = 1;
             PCSel = 0;
 
+            CSREn = 1;
+            CSRSel = ex_inst_reg[14];
         end
         default: begin
             ASel = 0;
@@ -302,6 +322,9 @@ module controller(
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 2;
+
+            CSREn = 0;
+            CSRSel = 0;
         end
         endcase
     end
@@ -312,85 +335,73 @@ module controller(
             LdSel = mem_wb_inst_reg[14:12];
             WBSel = 0;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
         end
         `STORE: begin
             LdSel = 7;
             WBSel = `WBSEL_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `BRANCH: begin
             LdSel = 7;
             WBSel = `WBSEL_X;
             RegWrEn = 0;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `JALR: begin
             LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `JAL: begin
             LdSel = 7;
             WBSel = 2;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `R: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
         end
         `I: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `AUIPC: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
 
         end
         `LUI: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
-            CSREn = 0;
-            CSRSel = 0;
+
         end
         `CSRW: begin
             LdSel = 7;
             WBSel = `WBSEL_X;
             RegWrEn = 0;
-            CSREn = 1;
-            CSRSel = mem_wb_inst_reg[14:12];
-            
+
         end
         default: begin
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
-            CSREn = 0;
-            CSRSel = 0;
+
         end
         endcase
     end

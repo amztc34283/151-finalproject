@@ -38,8 +38,8 @@ module Riscv151 #(
     wire [3:0] ALUSel_signal;
     wire MemRW_signal;
     wire [1:0] WBSel_signal;
-    wire CSREn_signal,
-    wire CSRSel_signal,
+    wire CSREn_signal;
+    wire CSRSel_signal;
     wire FA_1_signal;
     wire FB_1_signal;
     wire FA_2_signal;
@@ -169,10 +169,14 @@ module Riscv151 #(
     /********************* Before second pipeline register is implemented above *******************/
 
     // Pipeline Registers IF/D -> Ex Stage
-    // PC+4, PC, DataA, DataB, Imm
-    // PC+4 and PC, are both of width: `PC_BUS_WIDTH,
-    // They should be zero extended before being used
-    // PC => ALU, PC+4 => WB/Regfile
+    wire [31:0] csrwi_ex_wire;
+    d_ff csrwi_ex_ff (
+        .d($unsigned(inst[19:15])),
+        .clk(clk),
+        .rst(rst),
+        .q(csrwi_ex_wire)
+    );
+
     wire [31:0] PC_plus_4_ex;
     d_ff PC_plus_4_ex_ff (
         .d(pc_plus_4),
@@ -232,6 +236,22 @@ module Riscv151 #(
     );
 
     /******************************* FA_2 and FB_2 above ********************************/
+
+    wire [31:0] CSReg_in;
+    twoonemux CSRSel_mux (
+        .sel(CSRSel_signal),
+        .s0(FA_2_out),
+        .s1(csrwi_ex_wire),
+        .out(CSReg_in)
+    );
+
+    reg [31:0] CSRW_register;
+    always @(posedge clk) begin
+        if (rst)
+            CSRW_register <= 0;
+        else if (CSREn_signal) 
+            CSRW_register <= CSReg_in;
+    end
 
     branch_comp branch_compar (
         // .ra1(rd1_ex),
