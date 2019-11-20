@@ -36,7 +36,7 @@
 `define BLTU 6
 `define BGEU 7
 
-`define WBSel_X 0
+`define WBSEL_X 0
 
 // imm_gen control signals
 `define I_TYPE 1
@@ -80,9 +80,7 @@ module controller(
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs1
-   assign FA_2 = (mem_wb_inst_reg[11:7] != 0) &&
-                 (ex_inst_reg[19:15] != 0) &&
-                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
+   assign FA_2 = (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
@@ -91,9 +89,7 @@ module controller(
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs2
-   assign FB_2 = (mem_wb_inst_reg[11:7] != 0) &&
-                 (ex_inst_reg[24:20] != 0) &&
-                 (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
+   assign FB_2 = (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
@@ -105,9 +101,7 @@ module controller(
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs1
-   assign FA_1 = (mem_wb_inst_reg[11:7] != 0) &&
-                 (inst[19:15] != 0) &&
-                 (mem_wb_inst_reg[11:7] == inst[19:15]) &&
+   assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                        ((mem_wb_state != `BRANCH) &&
                        (mem_wb_state != `STORE) &&
                        (mem_wb_state != `X)) &&
@@ -116,9 +110,7 @@ module controller(
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
-   assign FB_1 = (mem_wb_inst_reg[11:7] != 0) &&
-                 (inst[24:20] != 0) &&
-                 (mem_wb_inst_reg[11:7] == inst[24:20]) &&
+   assign FB_1 = (mem_wb_inst_reg[11:7] == inst[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
                            (mem_wb_state != `X)) &&
@@ -183,7 +175,7 @@ module controller(
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -195,7 +187,7 @@ module controller(
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -209,12 +201,12 @@ module controller(
             InstSel = 2;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
-                `BEQ: PCSel = BrEq ? 1 : 0;
-                `BNE: PCSel = BrEq ? 0 : 1;
-                `BLT: PCSel = BrLt ? 1 : 0;
-                `BGE: PCSel = !BrLt ? 1 : 0;
-                `BLTU: PCSel = BrLt ? 1 : 0;
-                `BGEU: PCSel = !BrLt ? 1 : 0;
+                `BEQ: PCSel = BrEq ? 1 : 2;
+                `BNE: PCSel = BrEq ? 2 : 1;
+                `BLT: PCSel = BrLt ? 1 : 2;
+                `BGE: PCSel = !BrLt ? 1 : 2;
+                `BLTU: PCSel = BrLt ? 1 : 2;
+                `BGEU: PCSel = !BrLt ? 1 : 2;
             endcase
 
         end
@@ -248,7 +240,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -261,7 +253,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
          end
@@ -273,7 +265,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
          end
@@ -285,7 +277,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 0;
 
         end
@@ -308,7 +300,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             //Changed from 0 to 1 for BIOS MEM test
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 2;
         end
         endcase
@@ -333,7 +325,7 @@ module controller(
         end
         `BRANCH: begin
             LdSel = 7;
-            WBSel = `WBSel_X;
+            WBSel = `WBSEL_X;
             RegWrEn = 0;
             CSREn = 0;
             CSRSel = 0;
@@ -387,7 +379,7 @@ module controller(
         end
         `CSRW: begin
             LdSel = 7;
-            WBSel = `WBSel_X;
+            WBSel = `WBSEL_X;
             RegWrEn = 0;
             CSREn = 1;
             CSRSel = mem_wb_inst_reg[14:12];

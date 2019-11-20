@@ -130,6 +130,8 @@ module controller_tb();
     reg BrEq_in_b = 0;
     reg BrLt_in_b = 0;
     reg [2:0] ImmSel_e_b;
+    reg CSREn_e_b;
+    reg CSRSel_e_b;
 
    `define debug_FB1 \
         $display("mem_wb_inst: %h", DUT_controller.mem_wb_inst_reg); \
@@ -151,7 +153,6 @@ module controller_tb();
                         DUT_controller.inst[6:2]);
 
     `define stage1a(name) \
-        #(1); \
         if (FA_1 != FA_1_e) begin \
             $display("%s IF/D failed", name); \
             $display("FA_1: actual %d, expected %d", FA_1, FA_1_e); \
@@ -162,14 +163,12 @@ module controller_tb();
             $display("FB_1: actual %d, expected %d", FB_1, FB_1_e); \
             `debug_FB1; \
         end \
-        #(1) \
         if (ImmSel != ImmSel_e) begin \
             $display("%s IF/D failed", name); \
             $display("ImmSel: actual %d, expected %d", ImmSel, ImmSel_e); \
         end 
 
     `define stage1b(name) \
-        #(1) \
         if (FA_1 != FA_1_e_b) begin \
             $display("%s IF/D failed", name); \
             $display("FA_1: actual %d, expected %d", FA_1, FA_1_e_b); \
@@ -181,7 +180,6 @@ module controller_tb();
             $display("FB_1: actual %d, expected %d", FB_1, FB_1_e_b); \
             `debug_FB1; \
         end \
-        #(1) \
         if (ImmSel != ImmSel_e_b) begin \
             $display("%s IF/D failed", name); \
             $display("ImmSel: actual %d, expected %d", ImmSel, ImmSel_e_b); \
@@ -189,7 +187,6 @@ module controller_tb();
 
 
     `define stage2b(name) \
-        #(1) \
          if (FA_2 != FA_2_e_b) begin \
              $display("%s Execute failed", name); \
              $display("FA_2: actual %d, expected %d", FA_2, FA_2_e_b); \
@@ -233,7 +230,6 @@ module controller_tb();
  
  
     `define stage2a(name) \
-        #(1) \
          if (FA_2 != FA_2_e) begin \
              $display("%s Execute failed", name); \
              $display("FA_2: actual %d, expected %d", FA_2, FA_2_e); \
@@ -349,27 +345,30 @@ module controller_tb();
             begin \
                 inst = inst_input_a; \
                 @(posedge clk); \
+                #(1) \
                 inst = inst_input_b; \
                 @(posedge clk); \
+                #(1) \
                 inst = 32'h00000013; \
                 @(posedge clk); \
+                #(1) \
                 inst = 32'h00000013; \
             end \
             begin \
-                #(1) \
+                #(4) \
                 `stage1a(name_a); \
                 @(posedge clk); \
-                #(1) \
+                #(4) \
                 `stage2a(name_a); \
                 `stage1b(name_b); \
                 @(posedge clk); \
                 BrEq_in = BrEq_in_b; \
                 BrLt_in = BrLt_in_b; \
-                #(1) \
+                #(4) \
                 `stage3a(name_a); \
                 `stage2b(name_b); \
                 @(posedge clk); \
-                #(1) \
+                #(4) \
                 `stage3b(name_b); \
                 repeat(2) @(posedge clk); \
             end \
@@ -399,30 +398,33 @@ module controller_tb();
             begin \
                 inst = inst_input_a; \
                 @(posedge clk); \
+                #(1) \
                 inst = 32'h00000013; \
                 @(posedge clk); \
+                #(1) \
                 inst = inst_input_b; \
                 @(posedge clk); \
+                #(1) \
                 inst = 32'h00000013; \
             end \
             begin \
-                #(1) \
+                #(4) \
                 `stage1a(name_a); \
                 @(posedge clk); \
-                #(1) \
+                #(4) \
                 `stage2a(name_a); \
                 @(posedge clk); \
-                #(1) \
+                #(4) \
                 `stage3a(name_a); \
                 // $display("FA_1_e_b: %d", FA_1_e_b); \
                 `stage1b(name_b); \
                 @(posedge clk); \
                 BrEq_in = BrEq_in_b; \
                 BrLt_in = BrLt_in_b; \
-                #(1) \
+                #(6) \
                 `stage2b(name_b); \
                 @(posedge clk); \
-                #(1); \
+                #(4); \
                 `stage3b(name_b); \
                 repeat(2) @(posedge clk); \
             end \
@@ -431,329 +433,335 @@ module controller_tb();
 
     initial begin
 
-//    `ifndef IVERILOG
-//        $vcdpluson;
-//    `endif
-//    `ifdef IVERILOG
-//        $dumpfile("controller_tb.fst");
-//        $dumpvars(0,controller_tb);
-//    `endif
+   `ifndef IVERILOG
+       $vcdpluson;
+   `endif
+   `ifdef IVERILOG
+       $dumpfile("controller_tb.fst");
+       $dumpvars(0,controller_tb);
+   `endif
 
-//    // LOAD INSTRUCTIONS
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 0;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx; 
-//    BSel_e = 1;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 1;
-//    LdSel_e = `LW_FUNC3;
-//    WBSel_e = 0;
-//    PCSel_e = 0;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1;
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `I_TYPE;
+   rst = 1;
+   @(posedge clk);
+   #(1)
+   rst = 0;
+   
 
-//    // lw x2 0(x3)
-//    `ctrl_test("lw", 32'h0001a103);
+   // LOAD INSTRUCTIONS
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 0;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx; 
+   BSel_e = 1;
+   ASel_e = 0;
+   ALUSel_e = `ADD;
+   MemRW_e = 1;
+   LdSel_e = `LW_FUNC3;
+   WBSel_e = 0;
+   PCSel_e = 0;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 1;
+   InstSel_e = 2'b00;
+   ImmSel_e = `I_TYPE;
 
-//    // lh x2 0(x3)
-//    LdSel_e = `LH_FUNC3;
-//    `ctrl_test("lh", 32'h00019103);
+   // lw x2 0(x3)
+   `ctrl_test("lw", 32'h0001a103);
 
-//    // lb x2 0(x3)
-//    LdSel_e = `LB_FUNC3;
-//    `ctrl_test("lb", 32'h00018103);
+   // lh x2 0(x3)
+   LdSel_e = `LH_FUNC3;
+   `ctrl_test("lh", 32'h00019103);
 
-//    // lhu x2 0(x3)
-//    LdSel_e = `LHU_FUNC3;
-//    `ctrl_test("lhu", 32'h0001d103);
+   // lb x2 0(x3)
+   LdSel_e = `LB_FUNC3;
+   `ctrl_test("lb", 32'h00018103);
 
-//    // lbu x2 0(x3)
-//    LdSel_e = `LBU_FUNC3;
-//    `ctrl_test("lbu", 32'h0001c103);
+   // lhu x2 0(x3)
+   LdSel_e = `LHU_FUNC3;
+   `ctrl_test("lhu", 32'h0001d103);
+
+   // lbu x2 0(x3)
+   LdSel_e = `LBU_FUNC3;
+   `ctrl_test("lbu", 32'h0001c103);
     
-//    // STORE INSTRUCTIONS
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 0;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 1;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 1;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 2'bxx;
-//    PCSel_e = 0;
-//    SSel_e = `SW_FUNC3;
-//    RegWrEn_e = 0;
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `S_TYPE;
+   // STORE INSTRUCTIONS
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 0;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx;
+   BSel_e = 1;
+   ASel_e = 0;
+   ALUSel_e = `ADD;
+   MemRW_e = 1;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 2'bxx;
+   PCSel_e = 0;
+   SSel_e = `SW_FUNC3;
+   RegWrEn_e = 0;
+   InstSel_e = 2'b00;
+   ImmSel_e = `S_TYPE;
 
-//    // sw x2 0(x3)
-//    `ctrl_test("sw", 32'h0021a023);
+   // sw x2 0(x3)
+   `ctrl_test("sw", 32'h0021a023);
 
-//    // sh x2 0(x3)
-//    SSel_e = `SH_FUNC3;
-//    `ctrl_test("sh", 32'h00219023);  
+   // sh x2 0(x3)
+   SSel_e = `SH_FUNC3;
+   `ctrl_test("sh", 32'h00219023);  
 
-//    // sb x2 0(x3)
-//    SSel_e = `SB_FUNC3;
-//    `ctrl_test("sb", 32'h00218023);
+   // sb x2 0(x3)
+   SSel_e = `SB_FUNC3;
+   `ctrl_test("sb", 32'h00218023);
     
-//    // R INSTRUCTIONS
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 0;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 0;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 0;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 1;
-//    PCSel_e = 0;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1; 
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `X_TYPE;
+   // R INSTRUCTIONS
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 0;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx;
+   BSel_e = 0;
+   ASel_e = 0;
+   ALUSel_e = `ADD;
+   MemRW_e = 0;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 1;
+   PCSel_e = 0;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 1; 
+   InstSel_e = 2'b00;
+   ImmSel_e = `X_TYPE;
     
-//    // add x3 x4 x1 
-//    `ctrl_test("add", 32'h001201b3);
+   // add x3 x4 x1 
+   `ctrl_test("add", 32'h001201b3);
 
-//    // sub x3 x4 x1
-//    ALUSel_e = `SUB;
-//    `ctrl_test("sub", 32'h401201b3);
+   // sub x3 x4 x1
+   ALUSel_e = `SUB;
+   `ctrl_test("sub", 32'h401201b3);
 
-//    // slt x3 x4 x1
-//    ALUSel_e = `SLT;
-//    `ctrl_test("slt", 32'h001221b3);
+   // slt x3 x4 x1
+   ALUSel_e = `SLT;
+   `ctrl_test("slt", 32'h001221b3);
 
-//    // sltu x3 x4 x1
-//    ALUSel_e = `SLTU;
-//    `ctrl_test("sltu", 32'h001231b3);
+   // sltu x3 x4 x1
+   ALUSel_e = `SLTU;
+   `ctrl_test("sltu", 32'h001231b3);
 
-//    // xor x3 x4 x1
-//    ALUSel_e = `XOR;
-//    `ctrl_test("xor", 32'h001241b3);
+   // xor x3 x4 x1
+   ALUSel_e = `XOR;
+   `ctrl_test("xor", 32'h001241b3);
 
-//    // or x3 x4 x1
-//    ALUSel_e = `OR;
-//    `ctrl_test("or", 32'h001261b3);
+   // or x3 x4 x1
+   ALUSel_e = `OR;
+   `ctrl_test("or", 32'h001261b3);
 
-//    // and x3 x4 x1
-//    ALUSel_e = `AND;
-//    `ctrl_test("and", 32'h001271b3);
+   // and x3 x4 x1
+   ALUSel_e = `AND;
+   `ctrl_test("and", 32'h001271b3);
 
-//    // sll x3 x4 x1
-//    ALUSel_e = `SLL;
-//    `ctrl_test("sll", 32'h001211b3);
+   // sll x3 x4 x1
+   ALUSel_e = `SLL;
+   `ctrl_test("sll", 32'h001211b3);
 
-//    // srl x3 x4 x1
-//    ALUSel_e = `SRL;
-//    `ctrl_test("srl", 32'h001251b3);
+   // srl x3 x4 x1
+   ALUSel_e = `SRL;
+   `ctrl_test("srl", 32'h001251b3);
 
-//    // sra x3 x4 x1
-//    ALUSel_e = `SRA;
-//    `ctrl_test("sra", 32'h401251b3);
+   // sra x3 x4 x1
+   ALUSel_e = `SRA;
+   `ctrl_test("sra", 32'h401251b3);
     
     
-//    // I INSTRUCTION TESTS 
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 0;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 1;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 0;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 1;
-//    PCSel_e = 0;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1; 
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `I_TYPE;
+   // I INSTRUCTION TESTS 
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 0;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx;
+   BSel_e = 1;
+   ASel_e = 0;
+   ALUSel_e = `ADD;
+   MemRW_e = 0;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 1;
+   PCSel_e = 0;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 1; 
+   InstSel_e = 2'b00;
+   ImmSel_e = `I_TYPE;
 
-//     // addi x3 x4 x1 
-//     `ctrl_test("addi", 32'h00420193);
+    // addi x3 x4 x1 
+    `ctrl_test("addi", 32'h00420193);
 
-//     // slti x3 x4 x1
-//     ALUSel_e = `SLT;
-//     `ctrl_test("slti", 32'h00422193);
+    // slti x3 x4 x1
+    ALUSel_e = `SLT;
+    `ctrl_test("slti", 32'h00422193);
 
-//     // sltui x3 x4 x1
-//     ALUSel_e = `SLTU;
-//     `ctrl_test("sltiu", 32'h00423193);
+    // sltui x3 x4 x1
+    ALUSel_e = `SLTU;
+    `ctrl_test("sltiu", 32'h00423193);
 
-//     // xori x3 x4 x1
-//     ALUSel_e = `XOR;
-//     `ctrl_test("xori", 32'h00424193);
+    // xori x3 x4 x1
+    ALUSel_e = `XOR;
+    `ctrl_test("xori", 32'h00424193);
 
-//     // ori x3 x4 x1
-//     ALUSel_e = `OR;
-//     `ctrl_test("ori", 32'h00426193);
+    // ori x3 x4 x1
+    ALUSel_e = `OR;
+    `ctrl_test("ori", 32'h00426193);
 
-//     // andi x3 x4 x1
-//     ALUSel_e = `AND;
-//     `ctrl_test("andi", 32'h00427193);
+    // andi x3 x4 x1
+    ALUSel_e = `AND;
+    `ctrl_test("andi", 32'h00427193);
 
-//     // slli x3 x4 x1
-//     ALUSel_e = `SLL;
-//     `ctrl_test("slli", 32'h00421193);
+    // slli x3 x4 x1
+    ALUSel_e = `SLL;
+    `ctrl_test("slli", 32'h00421193);
 
-//     // srli x3 x4 x1
-//     ALUSel_e = `SRL;
-//     `ctrl_test("srli", 32'h00425193);
+    // srli x3 x4 x1
+    ALUSel_e = `SRL;
+    `ctrl_test("srli", 32'h00425193);
 
-//     // srai x3 x4 x1
-//     ALUSel_e = `SRA;
-//     `ctrl_test("srai", 32'h40425193);
+    // srai x3 x4 x1
+    ALUSel_e = `SRA;
+    `ctrl_test("srai", 32'h40425193);
 
-//    // B INSTRUCTION TESTS 
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrLt_in = 1'b0;
-//    BSel_e = 1;
-//    ASel_e = 1;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 0;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 1'bx;
-//    PCSel_e = 1;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 0; 
-//    InstSel_e = 2'b10;
-//    ImmSel_e = `B_TYPE;
+   // B INSTRUCTION TESTS 
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrLt_in = 1'b0;
+   BSel_e = 1;
+   ASel_e = 1;
+   ALUSel_e = `ADD;
+   MemRW_e = 0;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 1'bx;
+   PCSel_e = 1;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 0; 
+   InstSel_e = 2'b10;
+   ImmSel_e = `B_TYPE;
 
-//    // beq x30 x1 156
-//    BrUn_e = 0;
-//    BrEq_in = 1'b1;
-//    PCSel_e = 1;
-//    `ctrl_test("beq_true", 32'h081f0e63);
-//    BrEq_in = 1'b0;
-//    PCSel_e = 0;
-//    `ctrl_test("beq_false", 32'h081f0e63);
+   // beq x30 x1 156
+   BrUn_e = 0;
+   BrEq_in = 1'b1;
+   PCSel_e = 1;
+   `ctrl_test("beq_true", 32'h081f0e63);
+   BrEq_in = 1'b0;
+   PCSel_e = 0;
+   `ctrl_test("beq_false", 32'h081f0e63);
 
-//    // bne x30 x1 152
-//    BrEq_in = 1'b0;
-//    PCSel_e = 1;
-//    `ctrl_test("bne_true", 32'h081f1c63);
-//    BrEq_in = 1'b1;
-//    PCSel_e = 0;
-//    `ctrl_test("bne_false", 32'h081f1c63);
+   // bne x30 x1 152
+   BrEq_in = 1'b0;
+   PCSel_e = 1;
+   `ctrl_test("bne_true", 32'h081f1c63);
+   BrEq_in = 1'b1;
+   PCSel_e = 0;
+   `ctrl_test("bne_false", 32'h081f1c63);
 
-//    // blt x30 x1 148
-//    BrLt_in = 1'b1;
-//    PCSel_e = 1;
-//    `ctrl_test("blt_true", 32'h081f4a63);
-//    BrLt_in = 1'b0;
-//    PCSel_e = 0;
-//    `ctrl_test("blt_false", 32'h081f4a63);
+   // blt x30 x1 148
+   BrLt_in = 1'b1;
+   PCSel_e = 1;
+   `ctrl_test("blt_true", 32'h081f4a63);
+   BrLt_in = 1'b0;
+   PCSel_e = 0;
+   `ctrl_test("blt_false", 32'h081f4a63);
 
-//    // bge x30 x1 144
-//    BrLt_in = 1'b0;
-//    PCSel_e = 1;
-//    `ctrl_test("bge_true", 32'h081f5863);
-//    BrLt_in = 1'b1;
-//    PCSel_e = 0;
-//    `ctrl_test("bge_false", 32'h081f5863);
+   // bge x30 x1 144
+   BrLt_in = 1'b0;
+   PCSel_e = 1;
+   `ctrl_test("bge_true", 32'h081f5863);
+   BrLt_in = 1'b1;
+   PCSel_e = 0;
+   `ctrl_test("bge_false", 32'h081f5863);
 
-//    // bltu x30 x1 140
-//    BrUn_e = 1;
-//    BrLt_in = 1'b1;
-//    PCSel_e = 1;
-//    `ctrl_test("bltu_true", 32'h081f6663);
-//    BrLt_in = 1'b0;
-//    PCSel_e = 0;
-//    `ctrl_test("bltu_false", 32'h081f6663);
+   // bltu x30 x1 140
+   BrUn_e = 1;
+   BrLt_in = 1'b1;
+   PCSel_e = 1;
+   `ctrl_test("bltu_true", 32'h081f6663);
+   BrLt_in = 1'b0;
+   PCSel_e = 0;
+   `ctrl_test("bltu_false", 32'h081f6663);
 
-//    // bgeu x30 x1 136
-//    BrLt_in = 1'b1;
-//    PCSel_e = 0;
-//    `ctrl_test("bgeu_false", 32'h081f7463);
-//    BrLt_in = 1'b0;
-//    PCSel_e = 1;
-//    `ctrl_test("bgeu_true", 32'h081f7463);
+   // bgeu x30 x1 136
+   BrLt_in = 1'b1;
+   PCSel_e = 0;
+   `ctrl_test("bgeu_false", 32'h081f7463);
+   BrLt_in = 1'b0;
+   PCSel_e = 1;
+   `ctrl_test("bgeu_true", 32'h081f7463);
 
 
-//    // J INSTRUCTION TESTS
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 1'bx;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 1;
-//    ASel_e = 1;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 0;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 2'b10;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1; 
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `J_TYPE;
+   // J INSTRUCTION TESTS
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 1'bx;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx;
+   BSel_e = 1;
+   ASel_e = 1;
+   ALUSel_e = `ADD;
+   MemRW_e = 0;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 2'b10;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 1; 
+   InstSel_e = 2'b00;
+   ImmSel_e = `J_TYPE;
 
-//    // jal x0 96
-//    InstSel_e = 2'b10;
-//    PCSel_e = 1;
-//    WBSel_e = 2;
-//    `ctrl_test("jal", 32'h0600006f);
+   // jal x0 96
+   InstSel_e = 2'b10;
+   PCSel_e = 1;
+   WBSel_e = 2;
+   `ctrl_test("jal", 32'h0600006f);
   
-//    // jalr x0 x7 100
-//    ImmSel_e = `I_TYPE;
-//    InstSel_e = 2'b10;
-//    ASel_e = 0;  
-//    BSel_e = 1;
-//    `ctrl_test("jalr", 32'h06438067);
+   // jalr x0 x7 100
+   ImmSel_e = `I_TYPE;
+   InstSel_e = 2'b10;
+   ASel_e = 0;  
+   BSel_e = 1;
+   `ctrl_test("jalr", 32'h06438067);
 
-//    // U INSTRUCTION TESTS
-//    FA_1_e = 0;
-//    FB_1_e = 0;
-//    FA_2_e = 0;
-//    FB_2_e = 0;
-//    BrUn_e = 1'bx;
-//    BrEq_in = 1'bx;
-//    BrLt_in = 1'bx;
-//    BSel_e = 1;
-//    ASel_e = 0;
-//    ALUSel_e = `ADD;
-//    MemRW_e = 0;
-//    LdSel_e = `LOAD_X;
-//    WBSel_e = 1;
-//    PCSel_e = 0;
-//    SSel_e = `STORE_X;
-//    RegWrEn_e = 1; 
-//    InstSel_e = 2'b00;
-//    ImmSel_e = `U_TYPE;
+   // U INSTRUCTION TESTS
+   FA_1_e = 0;
+   FB_1_e = 0;
+   FA_2_e = 0;
+   FB_2_e = 0;
+   BrUn_e = 1'bx;
+   BrEq_in = 1'bx;
+   BrLt_in = 1'bx;
+   BSel_e = 1;
+   ASel_e = 0;
+   ALUSel_e = `ADD;
+   MemRW_e = 0;
+   LdSel_e = `LOAD_X;
+   WBSel_e = 1;
+   PCSel_e = 0;
+   SSel_e = `STORE_X;
+   RegWrEn_e = 1; 
+   InstSel_e = 2'b00;
+   ImmSel_e = `U_TYPE;
 
-//    // lui x2 1000
-//    ALUSel_e = `B;
-//    `ctrl_test("lui", 32'h003e8137);
+   // lui x2 1000
+   ALUSel_e = `B;
+   `ctrl_test("lui", 32'h003e8137);
 
-//    // auipc x2 1000
-//    ASel_e = 1;
-//    BSel_e = 1;
-//    ALUSel_e = `ADD;
-//    `ctrl_test("auipc", 32'h003e8117);
+   // auipc x2 1000
+   ASel_e = 1;
+   BSel_e = 1;
+   ALUSel_e = `ADD;
+   `ctrl_test("auipc", 32'h003e8117);
 
     // FORWARDING TESTS
     // ALU -> ALU Forwarding, rs1
@@ -830,10 +838,10 @@ module controller_tb();
     `forward2_test("f2_add_rs2_a", 32'h00118133, "f2_add_rs2_b", 32'h00218233);
 
 
-   // ALU -> Mem Forwarding, rs1
-   // Expected Control Signals for 2nd Inst
-   // add x2 x3 x1
-   // lw x3 0(x2)
+//    // ALU -> Mem Forwarding, rs1
+//    // Expected Control Signals for 2nd Inst
+//    // add x2 x3 x1
+//    // lw x3 0(x2)
    FA_1_e_b = 0;
    FB_1_e_b = 0;
    FB_2_e_b = 0;
@@ -1002,11 +1010,54 @@ module controller_tb();
     
 //    // ALU -> Branch Forwarding, rs2  
     
-//    // NON ADJACENT FORWARDING TESTS
+    // Mem -> CSRW forwarding, rs1
+    // lw x2 0(x3)
+    // csrw tohost, x2
+    BrUn_e_b = 1'bx;
+    BrEq_in_b = 1'bx;
+    BrLt_in_b = 1'bx;
+    BSel_e_b = 0;
+    ASel_e_b = 0;
+    ALUSel_e_b = `B;
+    MemRW_e_b = 0;
+    LdSel_e_b = 7;
+    WBSel_e_b = `WBSEL_X;
+    PCSel_e_b = 0;
+    SSel_e_b = 3;
+    RegWrEn_e_b = 0; 
+    InstSel_e_b = 1;
+    ImmSel_e_b = `X_TYPE;
+
+    CSREn_e_b = 1;
+    CSRSel_e_b = 0;
+
+    FA_1_e = 0;
+    FB_1_e = 0;
+    FA_2_e = 0;
+    FB_2_e = 0;
+
+    FA_1_e_b = 0;
+    FB_1_e_b = 0;
+    FA_2_e_b = 1;
+    FB_2_e_b = 0;
+
+    // lw x2 0(x3)
+    // csrw 0x51E, x2
+    `forward1_test("csrw_f1_lw_rs1_a", 32'h0001A103, "f1_csrw_b",  32'h51e11073);
+
+
+    FA_1_e_b = 1;
+    FB_1_e_b = 0;
+    FA_2_e_b = 0;
+    FB_2_e_b = 0;
+    // lw x2 0(x3)
+    // csrw 0x51E, x2
+    `forward2_test("csrw_f2_lw_rs1_a", 32'h0001A103, "f2_csrw_b",  32'h51e11073);
+
     
-//    `ifndef IVERILOG
-//        $vcdplusoff;
-//    `endif
+   `ifndef IVERILOG
+       $vcdplusoff;
+   `endif
 
     $finish();
 
