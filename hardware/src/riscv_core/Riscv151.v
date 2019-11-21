@@ -312,9 +312,9 @@ module Riscv151 #(
     wire [31:0] dmem_dout;
     dmem dmem (
         .clk(clk),
-        // .en(MemRW_signal),
+        .en(MemRW_signal),
         // Comment above and out below to run with dmem when ALU starts with 00x1
-        .en(dmem_memrw),
+        // .en(dmem_memrw),
         .we(dmem_we),
         .addr(ALU_out[15:2]),
         .din(dmem_din),
