@@ -307,7 +307,7 @@ module Riscv151 #(
 
     // Add condition to dmem read and write
     wire dmem_memrw;
-    assign dmem_memrw = (ALU_out[31:28] == 4'b00x1) ? MemRW_signal : 0 ;
+    assign dmem_memrw = (ALU_out[31:28] == 4'b0001 || ALU_out[31:28] == 4'b0011) ? MemRW_signal : 0 ;
 
     wire [31:0] dmem_dout;
     dmem dmem (
