@@ -57,10 +57,8 @@ module Riscv151 #(
       .FA_2(FA_2_signal),
       .FB_2(FB_2_signal),
       .LdSel(LdSel_signal),
-      .SSel(SSel_signal),
-      .B_OR_J(B_OR_J)
+      .SSel(SSel_signal)
     );
-
 
     wire [31:0] imem_dina, imem_doutb;
     wire [31:0] imem_addra;
@@ -289,29 +287,20 @@ module Riscv151 #(
         .s1(imm_gen_ex),
         .out(Bsel_out));
 
-    // It is cropped because of the case that user might change the PC
-    // to something big such that the first four bits are 4'b0100
-    // in which is representing the BIOS instruction.
-    // Added signal in controller - B_OR_J
-    wire [31:0] cropped_ALU_out;
-    wire [31:0] non_cropped_ALU_out;
+    // No longer valid - the issue is due to imemgen
+    // // It is cropped because of the case that user might change the PC
+    // // to something big such that the first four bits are 4'b0100
+    // // in which is representing the BIOS instruction.
+    // // Added signal in controller - B_OR_J
+    // wire [31:0] cropped_ALU_out;
+    // wire [31:0] non_cropped_ALU_out;
 
     alu ALU (
         .op1(Asel_out),
         .op2(Bsel_out),
         .sel(ALUSel_signal),
-        .res(non_cropped_ALU_out)
+        .res(ALU_out)
     );
-
-    assign cropped_ALU_out = {4'b0001,non_cropped_ALU_out[27:0]};
-    wire ALU_out_sel_signal;
-    assign ALU_out_sel_signal = ((B_OR_J == 1) && (PC_Asel_ex[31:28] == 4'b0001));
-
-    twoonemux ALU_out_sel(
-        .sel(ALU_out_sel_signal),
-        .s0(non_cropped_ALU_out),
-        .s1(cropped_ALU_out),
-        .out(ALU_out));
 
     wire [3:0] dmem_we;
     wire [31:0] dmem_din;

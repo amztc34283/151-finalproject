@@ -7,7 +7,7 @@ module d_ff #(parameter BUS_WIDTH = 32) (
 
     always @(posedge clk) begin
         if (rst)
-            q <= 32'h40000000;
+            q <= 32'h10000000;
         else
             q <= d;
         end
