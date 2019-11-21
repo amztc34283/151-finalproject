@@ -49,13 +49,11 @@
 module controller(
     input rst,
     input clk,
-    //TODO: Use pc_30 for InstSel
-    input pc_30,
     input [31:0] inst,
     input BrEq,
     input BrLt,
     output reg [1:0] PCSel,
-    output reg [1:0] InstSel,
+    output reg InstSel,
     output reg RegWrEn,
     output reg [2:0] ImmSel,
     output reg BrUn,
@@ -222,9 +220,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -238,9 +234,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 1;
             SSel = ex_inst_reg[13:12];
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -254,7 +248,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
-            InstSel = 2;
+            InstSel = 1;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 2;
@@ -273,7 +267,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
-            InstSel = 2;
+            InstSel = 1;
             PCSel = 1;
 
             CSREn = 0;
@@ -288,7 +282,7 @@ module controller(
             MemRW = 0;
             SSel = 3;
             PCSel = 1;
-            InstSel = 2;
+            InstSel = 1;
 
             CSREn = 0;
             CSRSel = 0;
@@ -301,9 +295,7 @@ module controller(
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
             MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -318,9 +310,7 @@ module controller(
             ALUSel = (ex_inst_reg[14:12] == 3'b001 || ex_inst_reg[14:12] == 3'b101) ? {ex_inst_reg[30], ex_inst_reg[14:12]} : {1'b0, ex_inst_reg[14:12]};
             MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -334,9 +324,7 @@ module controller(
             ALUSel = `ADD;
             MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -350,9 +338,7 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
@@ -366,8 +352,7 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 0;
 
             CSREn = 1;
@@ -380,9 +365,7 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
-            // InstSel = 1;
-            InstSel = pc_30 ? 1 : 0;
+            InstSel = 0;
             PCSel = 2;
 
             CSREn = 0;

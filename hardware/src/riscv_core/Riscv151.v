@@ -8,28 +8,12 @@ module Riscv151 #(
     output FPGA_SERIAL_TX
 );
 
-    wire [31:0] imem_dina, imem_doutb;
-    wire [31:0] imem_addra;
-    wire [3:0] imem_wea;
-    wire imem_ena;
-    // Remove the comment at step 9
-    imem imem (
-      .clk(clk),
-      .ena(imem_ena),
-      .wea(imem_wea),
-      .addra(imem_addra[15:2]),
-      .dina(imem_dina),
-      .addrb(PC_next_d[15:2]),
-      .doutb(imem_doutb)
-    );
-
-
     // Finish wiring modules
     // Set PC size to same bit width as imem and biosmem
     wire BrEq_signal;
     wire BrLT_signal;
     wire [1:0] PCSel_signal;
-    wire [1:0] InstSel_signal;
+    wire InstSel_signal;
     wire RegWrEn_signal;
     wire [2:0] ImmSel_signal;
     wire BrUn_signal;
@@ -48,12 +32,10 @@ module Riscv151 #(
     wire [1:0] SSel_signal;
 
     wire [31:0] inst;
-    wire pc_30;
 
     controller controls(
       .rst(rst),
       .clk(clk),
-      .pc_30(pc_30),
       .inst(inst),
       .BrEq(BrEq_signal),
       .BrLt(BrLT_signal),
@@ -77,6 +59,23 @@ module Riscv151 #(
       .SSel(SSel_signal)
     );
 
+
+    wire [31:0] imem_dina, imem_doutb;
+    wire [31:0] imem_addra;
+    wire [3:0] imem_wea;
+    wire imem_ena;
+
+    // Remove the comment at step 9
+    imem imem (
+      .clk(clk),
+      .ena(imem_ena),
+      .wea(imem_wea),
+      .addra(imem_addra[15:2]),
+      .dina(imem_dina),
+      .addrb(PC_next_d[15:2]),
+      .doutb(imem_doutb)
+    );
+
     //Wire for pipeline register at IF
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
@@ -88,9 +87,6 @@ module Riscv151 #(
         .rst(rst),
         .q(PC_next_q)
     );
-
-    // This is for Address Space Partitioning
-    assign pc_30 = PC_next_q[30];
 
     wire [31:0] pc_plus_4;
 
@@ -128,11 +124,18 @@ module Riscv151 #(
       .doutb(bios_doutb)
     );
 
-    threeonemux InstSel_mux (
-        .sel(InstSel_signal),
+    wire [31:0] pc_inst_30;
+    twoonemux PC30InstSel_mux (
+        .sel(PC_next_q[30]),
         .s0(imem_doutb),
         .s1(bios_douta),
-        .s2(32'h00000013),
+        .out(pc_inst_30)
+    );
+
+    twoonemux InstSel_mux (
+        .sel(InstSel_signal),
+        .s0(pc_inst_30),
+        .s1(32'h00000013),
         .out(inst)
     );
 
@@ -302,15 +305,28 @@ module Riscv151 #(
 
     /*********** everything before MEM stage is implemented above ***********/
 
+    // Add condition to dmem read and write
+    wire dmem_memrw;
+    assign dmem_memrw = (ALU_out[31:28] == 4'b00x1) ? MemRW_signal : 0 ;
+
     wire [31:0] dmem_dout;
     dmem dmem (
         .clk(clk),
-        .en(MemRW_signal),
+        // .en(MemRW_signal),
+        // Comment above and out below to run with dmem when ALU starts with 00x1
+        .en(dmem_memrw),
         .we(dmem_we),
         .addr(ALU_out[15:2]),
         .din(dmem_din),
         .dout(dmem_dout)
     );
+
+    // imem only enables write when pc_30 is 1 (the pc at mem stage)
+    // and ALU out address is 001x, controller needs to be modify
+    assign imem_wea = (PC_Asel_ex[30] == 1 && ALU_out[31:28] == 4'b001x) ? dmem_we : 4'b0000;
+
+    assign imem_addra = ALU_out;
+    assign imem_dina = dmem_din;
 
     wire [31:0] alu_mem;
     d_ff alu_mem_ff (
