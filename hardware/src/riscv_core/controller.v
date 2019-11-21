@@ -69,7 +69,8 @@ module controller(
     output FA_2,
     output FB_2,
     output reg [2:0] LdSel,
-    output reg [1:0] SSel);
+    output reg [1:0] SSel,
+    output reg B_OR_J);
 
     reg [31:0] ex_inst_reg = 32'h00000013;
     reg [31:0] mem_wb_inst_reg = 32'h00000013;
@@ -225,7 +226,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 0;
         end
         `STORE: begin
             ASel = 0;
@@ -239,7 +240,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 0;
         end
         `BRANCH: begin
             ASel = 1;
@@ -258,7 +259,7 @@ module controller(
                 `BLTU: PCSel = BrLt ? 1 : 2;
                 `BGEU: PCSel = !BrLt ? 1 : 2;
             endcase
-
+            B_OR_J = 1;
         end
         `JALR: begin
             ASel = 0;
@@ -272,7 +273,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 1;
         end
         `JAL: begin
             ASel = 1;
@@ -286,7 +287,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 1;
         end
         `R: begin
             ASel = 0;
@@ -300,7 +301,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 0;
         end
         `I: begin
             ASel = 0;
@@ -315,7 +316,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 0;
          end
         `AUIPC: begin
             ASel = 1;
@@ -329,7 +330,8 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            //AUIPC uses ALU result for PC
+            B_OR_J = 1;
          end
         `LUI: begin
             ASel = 0;
@@ -343,7 +345,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
-
+            B_OR_J = 0;
         end
         `CSRW: begin
             ASel = 0;
@@ -357,6 +359,7 @@ module controller(
 
             CSREn = 1;
             CSRSel = ex_inst_reg[14];
+            B_OR_J = 0;
         end
         default: begin
             ASel = 0;
@@ -370,6 +373,7 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
+            B_OR_J = 0;
         end
         endcase
     end
