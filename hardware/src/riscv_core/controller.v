@@ -263,7 +263,7 @@ module controller(
             BSel = 1;
             BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
-            MemRW = 1;
+            // MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
@@ -274,11 +274,26 @@ module controller(
 
 
             case (ALU_out) 
-                `UART_CTRL : MMapSel = 0;
-                `UART_RX : MMapSel = 1;
-                `UART_CC : MMapSel = 3;
-                `UART_IC : MMapSel = 4;
-                default: MMapSel = 7;
+                `UART_CTRL : begin 
+                    MMapSel = 0;
+                    MemRW = 0;
+                 end
+                `UART_RX : begin
+                    MMapSel = 1;
+                    MemRW = 0;
+                end
+                `UART_CC : begin
+                    MMapSel = 3;
+                    MemRW = 0; 
+                end
+                `UART_IC : begin
+                    MMapSel = 4;
+                    MemRW = 0;
+                end
+                default: begin
+                    MMapSel = 7;
+                    MemRW = 1;
+                end
             endcase
 
         end
@@ -287,7 +302,7 @@ module controller(
             BSel = 1;
             BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
-            MemRW = 1;
+            // MemRW = 1;
             SSel = ex_inst_reg[13:12];
             //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
@@ -297,9 +312,18 @@ module controller(
             CSRSel = 0;
 
             case (ALU_out) 
-                `UART_TX: MMapSel = 2;
-                `UART_RST: MMapSel = 5;
-                default: MMapSel = 7;
+                `UART_TX: begin
+                    MMapSel = 2;
+                    MemRW = 0;
+                end
+                `UART_RST: begin 
+                    MMapSel = 5;
+                    MemRW = 0;
+                end
+                default: begin 
+                    MMapSel = 7;
+                    MemRW = 1;
+                end
             endcase
 
         end

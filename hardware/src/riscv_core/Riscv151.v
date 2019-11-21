@@ -192,7 +192,7 @@ module Riscv151 #(
     // Pipeline Registers IF/D -> Ex Stage
     wire [31:0] csrwi_ex_wire;
     d_ff csrwi_ex_ff (
-        .d($unsigned(inst[19:15])),
+        .d( {{27{1'b0}}, inst[19:15]} ),
         .clk(clk),
         .rst(rst),
         .q(csrwi_ex_wire)
@@ -336,12 +336,12 @@ module Riscv151 #(
         .clk(clk),
         .rst(rst),
         .MMap_Sel(MMapSel_signal),       
-        .data_in_ready(IO_data_in_ready),    // Signal from UART reciever                     
+        .data_in_ready(IO_data_in_ready),       // Signal from UART reciever                     
         .data_out_valid(IO_data_out_valid),     // Signal from UART reciever
-        .data_out_ready(IO_data_out_ready),  // After recieve, goes hi, then low, back hi after load
+        .data_out_ready(IO_data_out_ready),     // After recieve, goes hi, then low, back hi after load
         .data_in_valid(IO_data_in_valid),
         .IO_mem_din_rx(IO_data_out),            // data_out
-        .IO_mem_din_tx(FA_2_out[7:0]),          // FA2
+        .IO_mem_din_tx(FB_2_out[7:0]),          // FB2
         .MMap_dout(mmap_dout)                            
     );
 
@@ -395,7 +395,7 @@ module Riscv151 #(
     ) on_chip_uart (
         .clk(clk),
         .reset(rst),
-        .data_in(IO_data_in),
+        .data_in(wd[7:0]),
         .data_in_valid(IO_data_in_valid),
         .data_out_ready(IO_data_out_ready),
         .serial_in(FPGA_SERIAL_RX),

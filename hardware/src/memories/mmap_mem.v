@@ -8,7 +8,7 @@ module mmap_mem (
   input data_out_valid,
   input [7:0] IO_mem_din_rx,
   input [7:0] IO_mem_din_tx,
-  output reg [7:0] MMap_dout
+  output reg [31:0] MMap_dout
 );
     
     reg [31:0] UART_control;
@@ -37,14 +37,16 @@ module mmap_mem (
             inst_counter <= 0;
         end
         if (data_out_ready && data_out_valid) begin
-            UART_control <= {{30{1'b0}}, data_out_valid, data_in_ready};
             UART_recv <= {{24{1'b0}}, IO_mem_din_rx};
         end
-        if (data_in_ready && data_in_valid) begin
+        if (MMap_Sel == 2) begin
             MMap_dout <= UART_tx;
         end
+
+        UART_control <= {{30{1'b0}}, data_out_valid, data_in_ready};
     end
-    
+
+
     always @(posedge clk) begin
         if (MMap_Sel == 2) 
             UART_tx = {{24{1'b0}}, IO_mem_din_tx};
