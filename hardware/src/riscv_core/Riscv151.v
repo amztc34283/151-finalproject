@@ -110,10 +110,10 @@ module Riscv151 #(
     wire [31:0] bios_douta, bios_doutb;
     wire bios_ena, bios_enb;
     // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
-    // assign bios_ena = (PC_next_d[31:28] == 4'b0100) ? 1 : 0;
-    // assign bios_enb = (ALU_out[31:28] == 4'b0100) ? 1 : 0;
+    assign bios_ena = (PC_next_d[31:28] == 4'b0100) ? 1 : 0;
+    assign bios_enb = (ALU_out[31:28] == 4'b0100) ? 1 : 0;
     // Comment below and comment out above for bios inst testing
-    assign bios_ena = 1;
+    // assign bios_ena = 1;
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
@@ -312,9 +312,9 @@ module Riscv151 #(
     wire [31:0] dmem_dout;
     dmem dmem (
         .clk(clk),
-        .en(MemRW_signal),
+        // .en(MemRW_signal),
         // Comment above and out below to run with dmem when ALU starts with 00x1
-        // .en(dmem_memrw),
+        .en(dmem_memrw),
         .we(dmem_we),
         .addr(ALU_out[15:2]),
         .din(dmem_din),
@@ -323,7 +323,8 @@ module Riscv151 #(
 
     // imem only enables write when pc_30 is 1 (the pc at mem stage)
     // and ALU out address is 001x, controller needs to be modify
-    assign imem_wea = (PC_Asel_ex[30] == 1 && ALU_out[31:28] == 4'b001x) ? dmem_we : 4'b0000;
+    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? dmem_we : 4'b0000;
+    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? 1 : 0;
 
     assign imem_addra = ALU_out;
     assign imem_dina = dmem_din;
