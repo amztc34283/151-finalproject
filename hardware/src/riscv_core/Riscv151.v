@@ -1,6 +1,7 @@
 module Riscv151 #(
     parameter CPU_CLOCK_FREQ = 50_000_000,
-    parameter RESET_PC = 32'h4000_0000
+    parameter RESET_PC = 32'h4000_0000,
+    parameter BAUD_RATE = 45_500
 )(
     input clk,
     input rst,
@@ -46,8 +47,22 @@ module Riscv151 #(
     wire FB_2_signal;
     wire [2:0] LdSel_signal;
     wire [1:0] SSel_signal;
+    
+
+    // IO Wires
+    wire [7:0] IO_data_in;
+    wire [7:0] IO_data_out;
+    wire IO_data_in_valid;
+    wire IO_data_out_ready;
+    wire IO_data_in_ready;
+    wire IO_data_out_valid;
+
+    wire MMap_Din_Sel_signal;
+    wire [2:0] MMapSel_signal;
+    wire MMap_DMem_Sel_signal;
 
     wire [31:0] inst;
+    wire [31:0] ALU_out;
 
     controller controls(
       .rst(rst),
@@ -55,6 +70,7 @@ module Riscv151 #(
       .inst(inst),
       .BrEq(BrEq_signal),
       .BrLt(BrLT_signal),
+      .ALU_out(ALU_out),
       .PCSel(PCSel_signal),
       .InstSel(InstSel_signal),
       .RegWrEn(RegWrEn_signal),
@@ -72,7 +88,13 @@ module Riscv151 #(
       .FA_2(FA_2_signal),
       .FB_2(FB_2_signal),
       .LdSel(LdSel_signal),
-      .SSel(SSel_signal)
+      .SSel(SSel_signal),
+      .MMapSel(MMapSel_signal),
+      .MMap_DMem_Sel(MMap_DMem_Sel_signal),
+      .data_out_valid(IO_data_out_valid),
+      .data_out_ready(IO_data_out_ready),
+      .data_in_ready(IO_data_in_ready),
+      .data_in_valid(IO_data_in_valid)
     );
 
     //Wire for pipeline register at IF
@@ -94,7 +116,6 @@ module Riscv151 #(
         .PC_out(pc_plus_4)
     );
 
-    wire [31:0] ALU_out;
 
     // Can we parametrize the bit width of the mux
     threeonemux PCSel_mux (
@@ -285,6 +306,7 @@ module Riscv151 #(
         .sel(ALUSel_signal),
         .res(ALU_out)
     );
+
     wire [3:0] dmem_we;
     wire [31:0] dmem_din;
     s_sel ssel(
@@ -306,6 +328,21 @@ module Riscv151 #(
       .addr(ALU_out[15:2]),
       .din(dmem_din),
       .dout(dmem_dout)
+    );
+
+
+    wire [31:0] mmap_dout;
+    mmap_mem mmap_mem (
+        .clk(clk),
+        .rst(rst),
+        .MMap_Sel(MMapSel_signal),       
+        .data_in_ready(IO_data_in_ready),    // Signal from UART reciever                     
+        .data_out_valid(IO_data_out_valid),     // Signal from UART reciever
+        .data_out_ready(IO_data_out_ready),  // After recieve, goes hi, then low, back hi after load
+        .data_in_valid(IO_data_in_valid),
+        .IO_mem_din_rx(IO_data_out),            // data_out
+        .IO_mem_din_tx(FA_2_out[7:0]),          // FA2
+        .MMap_dout(mmap_dout)                            
     );
 
     wire [31:0] alu_mem;
@@ -334,28 +371,38 @@ module Riscv151 #(
         .dout(ld_out)
     );
 
+    wire [31:0] MMap_Ld_Mux_out;
+    twoonemux MMap_DMem_mux (
+        .sel(MMap_DMem_Sel_signal), // top bit addr == 1 ? mmap_dout : ld_out
+        .s0(ld_out),                // output of ld_sel
+        .s1(mmap_dout),             // output of mmap_mem
+        .out(MMap_Ld_Mux_out)       // goes to WB_mux
+    );
+
     threeonemux wb_mux(
       .sel(WBSel_signal),
-      .s0(ld_out),
+      .s0(MMap_Ld_Mux_out),
       .s1(alu_mem),
       .s2(pc_plus_4_mem),
       .out(wd)
     );
 
+
     // On-chip UART
-    // uart #(
-    //     .CLOCK_FREQ(CPU_CLOCK_FREQ)
-    // ) on_chip_uart (
-    //     .clk(clk),
-    //     .reset(rst),
-    //     .data_in(),
-    //     .data_in_valid(),
-    //     .data_out_ready(),
-    //     .serial_in(FPGA_SERIAL_RX),
-    //
-    //     .data_in_ready(),
-    //     .data_out(),
-    //     .data_out_valid(),
-    //     .serial_out(FPGA_SERIAL_TX)
-    // );
+    uart #(
+        .CLOCK_FREQ(CPU_CLOCK_FREQ),
+        .BAUD_RATE(BAUD_RATE)
+    ) on_chip_uart (
+        .clk(clk),
+        .reset(rst),
+        .data_in(IO_data_in),
+        .data_in_valid(IO_data_in_valid),
+        .data_out_ready(IO_data_out_ready),
+        .serial_in(FPGA_SERIAL_RX),
+    
+        .data_in_ready(IO_data_in_ready),
+        .data_out(IO_data_out),
+        .data_out_valid(IO_data_out_valid),
+        .serial_out(FPGA_SERIAL_TX)
+    );
 endmodule

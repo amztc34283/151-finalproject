@@ -3,6 +3,7 @@
 module echo_testbench();
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
+    parameter BAUD_RATE = 50_000_000;
 
     reg clk, rst;
     wire FPGA_SERIAL_RX, FPGA_SERIAL_TX;
@@ -20,7 +21,8 @@ module echo_testbench();
     // Instantiate your Riscv CPU here and connect the FPGA_SERIAL_TX wires
     // to the off-chip UART we use for testing. The CPU has a UART (on-chip UART) inside it.
     Riscv151 # (
-        .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
+        .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ),
+        .BAUD_RATE(BAUD_RATE)
     ) CPU (
         .clk(clk),
         .rst(rst),
@@ -30,7 +32,8 @@ module echo_testbench();
 
     // Instantiate the off-chip UART
     uart # (
-        .CLOCK_FREQ(CPU_CLOCK_FREQ)
+        .CLOCK_FREQ(CPU_CLOCK_FREQ),
+        .BAUD_RATE(BAUD_RATE)
     ) off_chip_uart (
         .clk(clk),
         .reset(rst),
@@ -72,11 +75,35 @@ module echo_testbench();
             begin
                 // Wait until off-chip UART's transmit is ready
                 while (!data_in_ready) @(posedge clk); #1;
+                // Initially data_in_ready (off chip UART transmitter should be high)
+                // Since it is not transmitting, the serial_out is high
 
                 // Send a UART packet to the CPU from the off-chip UART
                 data_in_valid = 1'b1;
                 @(posedge clk); #1;
                 data_in_valid = 1'b0;
+                $display("off-chip UART about to transmit: %h/%c to the on-chip UART", data_in, data_in);
+
+                // Once the off chip UART transmitter observers data_in_valid high,
+                // data_in_ready and data_in_valid are both high,
+                // The transmit initiates transfer,
+                // setting data_in_ready = 0 and serial_out = 0
+                // sending 1 bit every SYMBOL_EDGE_TIME cycles, for a 8 bit word
+                // After the 8 bits are sent the transfer closes, 
+                // serial_out = data_in_ready = 1
+
+                // Initially the on chip UART reciever is not recieving anything,
+                // So serial_in is high and rx_running is low
+                // When the off chip UART initiates transfer, 
+                // serial_in goes low and rx_running is low, so reciving iniates
+                // Over the next 8 SYMBOL_EDGE_TIME number of cycles 
+                // the rx_shift register is filled
+                // Once the rx_shift register is filled, the reciever sends out
+                // the data_out_valid signal
+
+                // When the on chip device observes data_out_valid, it reads the value
+                // out of the on chip reciever's data_out and tells the reciever
+                // it can begin to recieve a new value by setting data_out_ready high
 
                 // Watch data_in (7A) be sent over FPGA_SERIAL_RX to the CPU's on-chip UART
 

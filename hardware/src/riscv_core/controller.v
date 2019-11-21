@@ -38,6 +38,13 @@
 
 `define WBSEL_X 0
 
+`define UART_CTRL 32'h80000000
+`define UART_RX 32'h80000004
+`define UART_TX 32'h80000008
+`define UART_CC 32'h80000010
+`define UART_IC 32'h80000014
+`define UART_RST 32'h80000018
+
 // imm_gen control signals
 `define I_TYPE 1
 `define S_TYPE 2
@@ -52,6 +59,9 @@ module controller(
     input [31:0] inst,
     input BrEq,
     input BrLt,
+    input [31:0] ALU_out,
+    input data_out_valid,
+    input data_in_ready,
     output reg [1:0] PCSel,
     output reg [1:0] InstSel,
     output reg RegWrEn,
@@ -69,13 +79,22 @@ module controller(
     output FA_2,
     output FB_2,
     output reg [2:0] LdSel,
-    output reg [1:0] SSel);
+    output reg [1:0] SSel,
+    // output reg MMap_Din_sel,
+    output reg [2:0] MMapSel,
+    output reg MMap_DMem_Sel,
+    output reg data_out_ready,
+    output reg data_in_valid
+    );
 
     reg [31:0] ex_inst_reg = 32'h00000013;
     reg [31:0] mem_wb_inst_reg = 32'h00000013;
 
     reg [4:0] ex_state = 2;
     reg [4:0] mem_wb_state = 2;
+
+
+    // I/O Memory Map Logic
 
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
@@ -181,6 +200,32 @@ module controller(
         end
     end
 
+    // Once data_out_valid && data_our ready are high,
+    // The value of data_out is written to to mmap_mem and
+    // data_out_ready is toggled low.
+    // data_out_ready is toggled high when a load is 
+    // done at address: `UART_RX.
+    always @(posedge clk) begin
+        if (rst)
+            data_out_ready <= 1;
+        else if (data_out_valid && data_out_ready)
+            data_out_ready <= 0;
+        else if (!data_out_ready && ex_inst_reg == `UART_RX)
+            data_out_ready <= 1;
+    end
+
+    // When software observes data_in_ready high,
+    // a sw is invoked at `UART_TX.
+    // When sw sets `UART_TX, it sets data_in_valid
+    always @(posedge clk) begin
+        if (rst)
+            data_in_valid <= 0;
+        else if (data_in_ready && data_in_valid)
+            data_in_valid <= 0;
+        else if (ex_inst_reg == `UART_TX)
+            data_in_valid <= 1;
+    end
+
     // We may wish to refactor this to use continuously assign
     // the control signals based on the opcode, such an
     // implementation should be more resource efficient
@@ -227,6 +272,15 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
+
+            case (ALU_out) 
+                `UART_CTRL : MMapSel = 0;
+                `UART_RX : MMapSel = 1;
+                `UART_CC : MMapSel = 3;
+                `UART_IC : MMapSel = 4;
+                default: MMapSel = 7;
+            endcase
+
         end
         `STORE: begin
             ASel = 0;
@@ -241,6 +295,12 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
+
+            case (ALU_out) 
+                `UART_TX: MMapSel = 2;
+                `UART_RST: MMapSel = 5;
+                default: MMapSel = 7;
+            endcase
 
         end
         `BRANCH: begin
@@ -261,6 +321,11 @@ module controller(
                 `BGEU: PCSel = !BrLt ? 1 : 2;
             endcase
 
+            CSREn = 0;
+            CSRSel = 0;
+
+            MMapSel = 7;
+
         end
         `JALR: begin
             ASel = 0;
@@ -274,6 +339,8 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
+
+            MMapSel = 7;
 
         end
         `JAL: begin
@@ -289,6 +356,8 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
         end
         `R: begin
             ASel = 0;
@@ -303,6 +372,8 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
+
+            MMapSel = 7;
 
         end
         `I: begin
@@ -320,6 +391,8 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
          end
         `AUIPC: begin
             ASel = 1;
@@ -335,6 +408,8 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
          end
         `LUI: begin
             ASel = 0;
@@ -350,6 +425,8 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
         end
         `CSRW: begin
             ASel = 0;
@@ -363,6 +440,8 @@ module controller(
 
             CSREn = 1;
             CSRSel = ex_inst_reg[14];
+
+            MMapSel = 7;
         end
         default: begin
             ASel = 0;
@@ -377,6 +456,8 @@ module controller(
 
             CSREn = 0;
             CSRSel = 0;
+
+            MMapSel = 7;
         end
         endcase
     end
@@ -388,11 +469,18 @@ module controller(
             WBSel = 0;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = ALU_out == `UART_CTRL || 
+                                        `UART_RX ||
+                                        `UART_CC || 
+                                        `UART_IC ? 1 : 0;
+
         end
         `STORE: begin
             LdSel = 7;
             WBSel = `WBSEL_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
+
+            MMap_DMem_Sel = 0;
 
 
         end
@@ -401,6 +489,7 @@ module controller(
             WBSel = `WBSEL_X;
             RegWrEn = 0;
 
+            MMap_DMem_Sel = 0;
 
         end
         `JALR: begin
@@ -408,6 +497,7 @@ module controller(
             WBSel = 2;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
 
         end
         `JAL: begin
@@ -415,6 +505,7 @@ module controller(
             WBSel = 2;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
 
         end
         `R: begin
@@ -422,12 +513,15 @@ module controller(
             WBSel = 1;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
+
         end
         `I: begin
             LdSel = 7;
             WBSel = 1;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
 
         end
         `AUIPC: begin
@@ -435,6 +529,7 @@ module controller(
             WBSel = 1;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
 
         end
         `LUI: begin
@@ -442,17 +537,23 @@ module controller(
             WBSel = 1;
             RegWrEn = 1;
 
+            MMap_DMem_Sel = 0;
+
         end
         `CSRW: begin
             LdSel = 7;
             WBSel = `WBSEL_X;
             RegWrEn = 0;
 
+            MMap_DMem_Sel = 0;
+
         end
         default: begin
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
+
+            MMap_DMem_Sel = 0;
 
         end
         endcase
