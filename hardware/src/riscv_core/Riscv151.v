@@ -30,7 +30,7 @@ module Riscv151 #(
     wire FB_2_signal;
     wire [2:0] LdSel_signal;
     wire [1:0] SSel_signal;
-    wire B_OR_J;
+    reg [31:0] ALU_out_to_wb = 0;
 
     wire [31:0] inst;
 
@@ -40,6 +40,7 @@ module Riscv151 #(
       .inst(inst),
       .BrEq(BrEq_signal),
       .BrLt(BrLT_signal),
+      .ALU_out_wb(ALU_out_to_wb),
       .PCSel(PCSel_signal),
       .InstSel(InstSel_signal),
       .RegWrEn(RegWrEn_signal),
@@ -301,6 +302,10 @@ module Riscv151 #(
         .sel(ALUSel_signal),
         .res(ALU_out)
     );
+
+    always @ (posedge clk) begin
+        ALU_out_to_wb <= ALU_out;
+    end
 
     wire [3:0] dmem_we;
     wire [31:0] dmem_din;

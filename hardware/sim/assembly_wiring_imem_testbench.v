@@ -74,6 +74,13 @@ module assembly_wiring_imem_testbench();
                 wait_for_reg_to_equal(20, 3);
                 check_reg(1, 32'd2, 2);
 
+                wait_for_reg_to_equal(20, 4);
+                check_reg(1, 32'd2, 2);
+
+                wait_for_reg_to_equal(20, 5);
+                check_reg(2, 32'd4, 3);
+                check_reg(1, 32'd2, 3);
+
                 $display("ALL BASIC WIRING ASSEMBLY TESTS PASSED");
                 done = 1;
             end

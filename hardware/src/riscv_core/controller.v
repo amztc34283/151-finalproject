@@ -52,6 +52,7 @@ module controller(
     input [31:0] inst,
     input BrEq,
     input BrLt,
+    input [31:0] ALU_out_wb,
     output reg [1:0] PCSel,
     output reg InstSel,
     output reg RegWrEn,
@@ -370,7 +371,10 @@ module controller(
         `LOAD: begin
             LdSel = mem_wb_inst_reg[14:12];
             WBSel = 0;
-            RegWrEn = 1;
+            // Set RegWrEn when ALU_out's first 4 bits are 4’b00x1
+            // Make sure it will not load data from DMEM to register
+            // when load address is not DMEM
+            RegWrEn = (ALU_out_wb[31:28] == 4'b0011 || ALU_out_wb[31:28] == 4'b0001) ? 1 : 0;
 
         end
         `STORE: begin
