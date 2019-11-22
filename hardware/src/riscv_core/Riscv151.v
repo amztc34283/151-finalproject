@@ -9,28 +9,12 @@ module Riscv151 #(
     output FPGA_SERIAL_TX
 );
 
-    wire [31:0] imem_dina, imem_doutb;
-    wire [31:0] imem_addra, imem_addrb;
-    wire [3:0] imem_wea;
-    wire imem_ena;
-    // Remove the comment at step 9
-    // imem imem (
-    //   .clk(clk),
-    //   .ena(imem_ena),
-    //   .wea(imem_wea),
-    //   .addra(imem_addra[13:0]),
-    //   .dina(imem_dina),
-    //   .addrb(imem_addrb[13:0]),
-    //   .doutb(imem_doutb)
-    // );
-
-
     // Finish wiring modules
     // Set PC size to same bit width as imem and biosmem
     wire BrEq_signal;
     wire BrLT_signal;
     wire [1:0] PCSel_signal;
-    wire [1:0] InstSel_signal;
+    wire InstSel_signal;
     wire RegWrEn_signal;
     wire [2:0] ImmSel_signal;
     wire BrUn_signal;
@@ -98,6 +82,22 @@ module Riscv151 #(
       .data_in_valid(data_in_valid)
     );
 
+    wire [31:0] imem_dina, imem_doutb;
+    wire [31:0] imem_addra;
+    wire [3:0] imem_wea;
+    wire imem_ena;
+
+    // Remove the comment at step 9
+    imem imem (
+      .clk(clk),
+      .ena(imem_ena),
+      .wea(imem_wea),
+      .addra(imem_addra[15:2]),
+      .dina(imem_dina),
+      .addrb(PC_next_d[15:2]),
+      .doutb(imem_doutb)
+    );
+
     //Wire for pipeline register at IF
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
@@ -127,25 +127,36 @@ module Riscv151 #(
         .out(PC_next_d)
     );
 
-    wire [31:0] bios_addra, bios_addrb;
+    wire [31:0] bios_addra;
     wire [31:0] bios_douta, bios_doutb;
     wire bios_ena, bios_enb;
-    assign bios_ena = 1;
+    // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
+    assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1 : 0;
+    assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1 : 0;
+    // Comment below and comment out above for bios inst testing
+    // assign bios_ena = 1;
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
       .addra(PC_next_d[13:2]),
       .douta(bios_douta),
       .enb(bios_enb),
-      .addrb(bios_addrb[13:2]),
+      .addrb(ALU_out[13:2]),
       .doutb(bios_doutb)
     );
 
-    threeonemux InstSel_mux (
-        .sel(InstSel_signal),
-        .s0(imem_douta),
+    wire [31:0] pc_inst_30;
+    twoonemux PC30InstSel_mux (
+        .sel(PC_next_q[30]),
+        .s0(imem_doutb),
         .s1(bios_douta),
-        .s2(32'h00000013),
+        .out(pc_inst_30)
+    );
+
+    twoonemux InstSel_mux (
+        .sel(InstSel_signal),
+        .s0(pc_inst_30),
+        .s1(32'h00000013),
         .out(inst)
     );
 
@@ -271,13 +282,11 @@ module Riscv151 #(
     always @(posedge clk) begin
         if (rst)
             CSRW_register <= 0;
-        else if (CSREn_signal) 
+        else if (CSREn_signal)
             CSRW_register <= CSReg_in;
     end
 
     branch_comp branch_compar (
-        // .ra1(rd1_ex),
-        // .ra2(rd2_ex),
         .ra1(FA_2_out),
         .ra2(FB_2_out),
         .BrUn(BrUn_signal),
@@ -288,7 +297,6 @@ module Riscv151 #(
     wire [31:0] Asel_out;
     twoonemux Asel_mux(
         .sel(ASel_signal),
-        // .s0(rd1_ex),
         .s0(FA_2_out),
         .s1(PC_Asel_ex),
         .out(Asel_out));
@@ -296,10 +304,17 @@ module Riscv151 #(
     wire [31:0] Bsel_out;
     twoonemux Bsel_mux(
         .sel(BSel_signal),
-        // .s0(rd2_ex),
         .s0(FB_2_out),
         .s1(imm_gen_ex),
         .out(Bsel_out));
+
+    // No longer valid - the issue is due to imemgen
+    // // It is cropped because of the case that user might change the PC
+    // // to something big such that the first four bits are 4'b0100
+    // // in which is representing the BIOS instruction.
+    // // Added signal in controller - B_OR_J
+    // wire [31:0] cropped_ALU_out;
+    // wire [31:0] non_cropped_ALU_out;
 
     alu ALU (
         .op1(Asel_out),
@@ -313,7 +328,6 @@ module Riscv151 #(
     s_sel ssel(
         .sel(SSel_signal),
         .offset(ALU_out[1:0]),
-        // .rs2(rd2_ex),
         .rs2(FB_2_out),
         .dmem_we(dmem_we),
         .dmem_din(dmem_din)
@@ -340,17 +354,6 @@ module Riscv151 #(
         .serial_out(FPGA_SERIAL_TX)
     );
 
-    wire [31:0] dmem_dout;
-    dmem dmem (
-      .clk(clk),
-      .en(MemRW_signal),
-      .we(dmem_we),
-    //   .addr(ALU_out[31] == 1'b1 ? 13'd0 : ALU_out[15:2]),
-      .addr(ALU_out[15:2]),
-      .din(dmem_din),
-      .dout(dmem_dout)
-    );
-
     wire [31:0] mmap_dout;
     mmap_mem mmap_mem (
         .clk(clk),
@@ -360,6 +363,30 @@ module Riscv151 #(
         .data_out_valid(data_out_valid),     // Signal from UART reciever        
         .MMap_dout(mmap_dout)                            
     );
+    // Add condition to dmem read and write
+    wire dmem_memrw;
+    assign dmem_memrw = (ALU_out[31:28] == 4'b0001 || ALU_out[31:28] == 4'b0011) ? MemRW_signal : 0 ;
+
+    wire [31:0] dmem_dout;
+    dmem dmem (
+        .clk(clk),
+        // .en(MemRW_signal),
+        // Comment above and out below to run with dmem when ALU starts with 00x1
+        .en(dmem_memrw),
+        .we(dmem_we),
+        .addr(ALU_out[15:2]),
+        .din(dmem_din),
+        .dout(dmem_dout)
+    );
+
+    // imem only enables write when pc_30 is 1 (the pc at mem stage)
+    // and ALU out address is 001x, controller needs to be modify
+    // ALU_out[31:28] === 4'b001x
+    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? dmem_we : 4'b0000;
+    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? 1 : 0;
+
+    assign imem_addra = ALU_out;
+    assign imem_dina = dmem_din;
 
     wire [31:0] alu_mem;
     d_ff alu_mem_ff (
@@ -368,6 +395,13 @@ module Riscv151 #(
         .rst(rst),
         .q(alu_mem)
     );
+
+    wire [31:0] bios_dmem_signal;
+    twoonemux BIOS_DMEM_MUX (
+        .sel(alu_mem[30]),
+        .s0(dmem_dout),
+        .s1(bios_doutb),
+        .out(bios_dmem_signal));
 
     wire [31:0] pc_plus_4_mem;
     d_ff pc_plus_4_mem_ff (
@@ -382,7 +416,7 @@ module Riscv151 #(
     wire [31:0] ld_out;
     ld_sel ld(
         .sel(LdSel_signal),
-        .din(dmem_dout),
+        .din(bios_dmem_signal),
         .offset(alu_mem[1:0]), //getting it from instruction after mem stage
         .dout(ld_out)
     );

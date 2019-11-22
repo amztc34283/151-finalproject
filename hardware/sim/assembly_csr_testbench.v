@@ -42,7 +42,7 @@ module assembly_csr_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_csr/csr.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_csr/csr.hex", CPU.imem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;

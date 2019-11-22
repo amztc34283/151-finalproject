@@ -43,7 +43,7 @@ module assembly_store_and_load_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/store_and_load.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_tests/store_and_load.hex", CPU.imem.mem);
 
         // `ifndef IVERILOG
         //     $vcdpluson;

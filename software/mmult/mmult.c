@@ -1,9 +1,7 @@
-#include "types.h"
-#include "benchmark.h"
 #include "ascii.h"
 #include "uart.h"
 
-#define N 6
+#define N 2
 #define MAT_SIZE (1 << (N << 1))
 #define DIM_SIZE (1 << N)
 static int32_t A[MAT_SIZE] = {0};

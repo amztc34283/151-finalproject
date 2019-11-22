@@ -33,7 +33,7 @@
 
 module alu (
     input [31:0] op1, op2,
-    input [4:0] sel,
+    input [3:0] sel,
     output reg [31:0] res
 );
 
