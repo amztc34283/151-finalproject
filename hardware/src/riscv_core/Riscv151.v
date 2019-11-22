@@ -50,19 +50,20 @@ module Riscv151 #(
     
 
     // IO Wires
-    wire [7:0] IO_data_in;
-    wire [7:0] IO_data_out;
-    wire IO_data_in_valid;
-    wire IO_data_out_ready;
-    wire IO_data_in_ready;
-    wire IO_data_out_valid;
+    wire [7:0] data_in;
+    wire [7:0] data_out;
+    wire data_in_valid;
+    wire data_out_ready;
+    wire data_in_ready;
+    wire data_out_valid;
 
-    wire MMap_Din_Sel_signal;
     wire [2:0] MMapSel_signal;
-    wire MMap_DMem_Sel_signal;
+    wire [1:0] MMap_DMem_Sel_signal;
 
     wire [31:0] inst;
     wire [31:0] ALU_out;
+
+    reg [7:0] data_out_reg;
 
     controller controls(
       .rst(rst),
@@ -91,10 +92,10 @@ module Riscv151 #(
       .SSel(SSel_signal),
       .MMapSel(MMapSel_signal),
       .MMap_DMem_Sel(MMap_DMem_Sel_signal),
-      .data_out_valid(IO_data_out_valid),
-      .data_out_ready(IO_data_out_ready),
-      .data_in_ready(IO_data_in_ready),
-      .data_in_valid(IO_data_in_valid)
+      .data_out_valid(data_out_valid),
+      .data_out_ready(data_out_ready),
+      .data_in_ready(data_in_ready),
+      .data_in_valid(data_in_valid)
     );
 
     //Wire for pipeline register at IF
@@ -320,28 +321,43 @@ module Riscv151 #(
 
     /*********** everything before MEM stage is implemented above ***********/
 
+    // On-chip UART
+    assign data_in = FB_2_out[7:0];
+    uart #(
+        .CLOCK_FREQ(CPU_CLOCK_FREQ),
+        .BAUD_RATE(BAUD_RATE)
+    ) on_chip_uart (
+        .clk(clk),
+        .reset(rst),
+        .data_in(data_in),                   
+        .data_in_valid(data_in_valid),         // Memory Mapped IO Write Val, set by store @ 0x8000_0008   
+        .data_out_ready(data_out_ready),       // Memory Mapped IO Write En, set by load @ 0x8000_0004
+        .serial_in(FPGA_SERIAL_RX),
+    
+        .data_in_ready(data_in_ready),          // 0x8000_0000 bit 0
+        .data_out(data_out),                    // Memory Mapped IO Read Val
+        .data_out_valid(data_out_valid),        // 0x8000_0000 bit 1
+        .serial_out(FPGA_SERIAL_TX)
+    );
+
     wire [31:0] dmem_dout;
     dmem dmem (
       .clk(clk),
       .en(MemRW_signal),
       .we(dmem_we),
+    //   .addr(ALU_out[31] == 1'b1 ? 13'd0 : ALU_out[15:2]),
       .addr(ALU_out[15:2]),
       .din(dmem_din),
       .dout(dmem_dout)
     );
-
 
     wire [31:0] mmap_dout;
     mmap_mem mmap_mem (
         .clk(clk),
         .rst(rst),
         .MMap_Sel(MMapSel_signal),       
-        .data_in_ready(IO_data_in_ready),       // Signal from UART reciever                     
-        .data_out_valid(IO_data_out_valid),     // Signal from UART reciever
-        .data_out_ready(IO_data_out_ready),     // After recieve, goes hi, then low, back hi after load
-        .data_in_valid(IO_data_in_valid),
-        .IO_mem_din_rx(IO_data_out),            // data_out
-        .IO_mem_din_tx(FB_2_out[7:0]),          // FB2
+        .data_in_ready(data_in_ready),       // Signal from UART transmitter                     
+        .data_out_valid(data_out_valid),     // Signal from UART reciever        
         .MMap_dout(mmap_dout)                            
     );
 
@@ -372,11 +388,12 @@ module Riscv151 #(
     );
 
     wire [31:0] MMap_Ld_Mux_out;
-    twoonemux MMap_DMem_mux (
-        .sel(MMap_DMem_Sel_signal), // top bit addr == 1 ? mmap_dout : ld_out
-        .s0(ld_out),                // output of ld_sel
-        .s1(mmap_dout),             // output of mmap_mem
-        .out(MMap_Ld_Mux_out)       // goes to WB_mux
+    threeonemux MMap_DMem_mux (
+        .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
+        .s0(ld_out),                    // output of ld_sel
+        .s1({{24{1'b0}}, data_out}),    // output of UART reciever
+        .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
+        .out(MMap_Ld_Mux_out)           // goes to WB_mux
     );
 
     threeonemux wb_mux(
@@ -387,22 +404,4 @@ module Riscv151 #(
       .out(wd)
     );
 
-
-    // On-chip UART
-    uart #(
-        .CLOCK_FREQ(CPU_CLOCK_FREQ),
-        .BAUD_RATE(BAUD_RATE)
-    ) on_chip_uart (
-        .clk(clk),
-        .reset(rst),
-        .data_in(wd[7:0]),
-        .data_in_valid(IO_data_in_valid),
-        .data_out_ready(IO_data_out_ready),
-        .serial_in(FPGA_SERIAL_RX),
-    
-        .data_in_ready(IO_data_in_ready),
-        .data_out(IO_data_out),
-        .data_out_valid(IO_data_out_valid),
-        .serial_out(FPGA_SERIAL_TX)
-    );
 endmodule

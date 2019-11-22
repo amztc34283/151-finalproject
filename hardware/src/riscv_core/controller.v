@@ -82,7 +82,7 @@ module controller(
     output reg [1:0] SSel,
     // output reg MMap_Din_sel,
     output reg [2:0] MMapSel,
-    output reg MMap_DMem_Sel,
+    output reg [1:0] MMap_DMem_Sel,
     output reg data_out_ready,
     output reg data_in_valid
     );
@@ -93,6 +93,7 @@ module controller(
     reg [4:0] ex_state = 2;
     reg [4:0] mem_wb_state = 2;
 
+    reg [31:0] ALU_out_mem;
 
     // I/O Memory Map Logic
 
@@ -200,30 +201,11 @@ module controller(
         end
     end
 
-    // Once data_out_valid && data_our ready are high,
-    // The value of data_out is written to to mmap_mem and
-    // data_out_ready is toggled low.
-    // data_out_ready is toggled high when a load is 
-    // done at address: `UART_RX.
     always @(posedge clk) begin
         if (rst)
-            data_out_ready <= 1;
-        else if (data_out_valid && data_out_ready)
-            data_out_ready <= 0;
-        else if (!data_out_ready && ex_inst_reg == `UART_RX)
-            data_out_ready <= 1;
-    end
-
-    // When software observes data_in_ready high,
-    // a sw is invoked at `UART_TX.
-    // When sw sets `UART_TX, it sets data_in_valid
-    always @(posedge clk) begin
-        if (rst)
-            data_in_valid <= 0;
-        else if (data_in_ready && data_in_valid)
-            data_in_valid <= 0;
-        else if (ex_inst_reg == `UART_TX)
-            data_in_valid <= 1;
+            ALU_out_mem <= 0;
+        else
+            ALU_out_mem <= ALU_out;
     end
 
     // We may wish to refactor this to use continuously assign
@@ -277,24 +259,31 @@ module controller(
                 `UART_CTRL : begin 
                     MMapSel = 0;
                     MemRW = 0;
+                    data_out_ready = 0;
                  end
                 `UART_RX : begin
                     MMapSel = 1;
                     MemRW = 0;
+                    data_out_ready = 1;
                 end
                 `UART_CC : begin
                     MMapSel = 3;
                     MemRW = 0; 
+                    data_out_ready = 0;
                 end
                 `UART_IC : begin
                     MMapSel = 4;
                     MemRW = 0;
+                    data_out_ready = 0;
                 end
                 default: begin
                     MMapSel = 7;
                     MemRW = 1;
+                    data_out_ready = 0;
                 end
             endcase
+
+            data_in_valid = 0;
 
         end
         `STORE: begin
@@ -315,16 +304,21 @@ module controller(
                 `UART_TX: begin
                     MMapSel = 2;
                     MemRW = 0;
+                    data_in_valid = 1;
                 end
                 `UART_RST: begin 
                     MMapSel = 5;
                     MemRW = 0;
+                    data_in_valid = 0;
                 end
                 default: begin 
                     MMapSel = 7;
                     MemRW = 1;
+                    data_in_valid = 0;
                 end
             endcase
+
+            data_out_ready = 0;
 
         end
         `BRANCH: begin
@@ -350,6 +344,8 @@ module controller(
 
             MMapSel = 7;
 
+            data_in_valid = 0;
+            data_out_ready = 0;
         end
         `JALR: begin
             ASel = 0;
@@ -365,6 +361,9 @@ module controller(
             CSRSel = 0;
 
             MMapSel = 7;
+
+            data_in_valid = 0;
+            data_out_ready = 0;
 
         end
         `JAL: begin
@@ -382,6 +381,9 @@ module controller(
 
             MMapSel = 7;
 
+            data_in_valid = 0;
+            data_out_ready = 0;
+
         end
         `R: begin
             ASel = 0;
@@ -398,6 +400,9 @@ module controller(
             CSRSel = 0;
 
             MMapSel = 7;
+
+            data_in_valid = 0;
+            data_out_ready = 0;
 
         end
         `I: begin
@@ -417,6 +422,10 @@ module controller(
 
             MMapSel = 7;
 
+            data_in_valid = 0;
+            data_out_ready = 0;
+
+
          end
         `AUIPC: begin
             ASel = 1;
@@ -433,6 +442,10 @@ module controller(
             CSRSel = 0;
 
             MMapSel = 7;
+
+            data_in_valid = 0;
+            data_out_ready = 0;
+
 
          end
         `LUI: begin
@@ -451,6 +464,9 @@ module controller(
 
             MMapSel = 7;
 
+            data_in_valid = 0;
+            data_out_ready = 0;
+
         end
         `CSRW: begin
             ASel = 0;
@@ -466,6 +482,10 @@ module controller(
             CSRSel = ex_inst_reg[14];
 
             MMapSel = 7;
+
+            data_in_valid = 0;
+            data_out_ready = 0;
+
         end
         default: begin
             ASel = 0;
@@ -482,6 +502,10 @@ module controller(
             CSRSel = 0;
 
             MMapSel = 7;
+
+            data_in_valid = 0;
+            data_out_ready = 0;
+
         end
         endcase
     end
@@ -493,10 +517,10 @@ module controller(
             WBSel = 0;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = ALU_out == `UART_CTRL || 
-                                        `UART_RX ||
-                                        `UART_CC || 
-                                        `UART_IC ? 1 : 0;
+            MMap_DMem_Sel = ALU_out_mem == `UART_RX ? 
+                            1 : (ALU_out_mem == `UART_CTRL || 
+                                ALU_out_mem == `UART_CC || 
+                                ALU_out_mem == `UART_IC ? 2 : 0);
 
         end
         `STORE: begin
@@ -505,7 +529,7 @@ module controller(
             RegWrEn = 0;
 
             MMap_DMem_Sel = 0;
-
+            
 
         end
         `BRANCH: begin

@@ -3,7 +3,7 @@
 module echo_testbench();
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
-    parameter BAUD_RATE = 50_000_000;
+    parameter BAUD_RATE = 12_500_000;
 
     reg clk, rst;
     wire FPGA_SERIAL_RX, FPGA_SERIAL_TX;
@@ -75,37 +75,25 @@ module echo_testbench();
             begin
                 // Wait until off-chip UART's transmit is ready
                 while (!data_in_ready) @(posedge clk); #1;
-                // Initially data_in_ready (off chip UART transmitter should be high)
-                // Since it is not transmitting, the serial_out is high
 
                 // Send a UART packet to the CPU from the off-chip UART
                 data_in_valid = 1'b1;
                 @(posedge clk); #1;
                 data_in_valid = 1'b0;
-                $display("off-chip UART about to transmit: %h/%c to the on-chip UART", data_in, data_in);
-
-                // Once the off chip UART transmitter observers data_in_valid high,
-                // data_in_ready and data_in_valid are both high,
-                // The transmit initiates transfer,
-                // setting data_in_ready = 0 and serial_out = 0
-                // sending 1 bit every SYMBOL_EDGE_TIME cycles, for a 8 bit word
-                // After the 8 bits are sent the transfer closes, 
-                // serial_out = data_in_ready = 1
-
-                // Initially the on chip UART reciever is not recieving anything,
-                // So serial_in is high and rx_running is low
-                // When the off chip UART initiates transfer, 
-                // serial_in goes low and rx_running is low, so reciving iniates
-                // Over the next 8 SYMBOL_EDGE_TIME number of cycles 
-                // the rx_shift register is filled
-                // Once the rx_shift register is filled, the reciever sends out
-                // the data_out_valid signal
-
-                // When the on chip device observes data_out_valid, it reads the value
-                // out of the on chip reciever's data_out and tells the reciever
-                // it can begin to recieve a new value by setting data_out_ready high
+                $display("off-chip UART about to transmit: %h/%c/%b to the on-chip UART", data_in, data_in, data_in);
 
                 // Watch data_in (7A) be sent over FPGA_SERIAL_RX to the CPU's on-chip UART
+                while (!CPU.data_out_valid != 1) @(posedge clk);
+                $display("Data Out Valid Set High");
+
+                while (CPU.on_chip_uart.data_out !== data_in) @(posedge clk);
+                $display("data_out, %h/%c, recieved", CPU.on_chip_uart.data_out , CPU.on_chip_uart.data_out);
+
+                while (CPU.MMapSel_signal != 2) @(posedge clk);
+                $display("UART_tx happening in ex stage");
+
+                while (CPU.data_in != data_in) @(posedge clk);
+                $display("UART_tx, in IO MMap Mem %h/%c", CPU.data_in, CPU.data_in);
 
                 // The echo program running on the CPU is polling the memory mapped register (0x80000000)
                 // and waiting for data_out_valid of the on-chip UART to become 1. Once it does, the echo program
@@ -114,17 +102,40 @@ module echo_testbench();
                 // which should command the on-chip UART's transmitter to send the same data back to the off-chip UART.
 
                 // Wait for the off-chip UART to receive the echoed data
-                while (!data_out_valid) @(posedge clk); #1;
-                $display("Got %h", data_out);
+                while (!data_out_valid) @(posedge clk); 
+                $display("Got %h/%b", data_out, data_out);
 
                 // Clear the off-chip UART's receiver for another UART packet
                 data_out_ready = 1'b1;
                 @(posedge clk); #1;
                 data_out_ready = 1'b0;
+
+                data_in = 8'h61;
+                while (!data_in_ready) @(posedge clk); #1;
+
+                data_in_valid = 1'b1;
+                @(posedge clk); #1;
+                data_in_valid = 1'b0;
+                $display("off-chip UART about to transmit: %h/%c/%b to the on-chip UART", data_in, data_in, data_in);
+
+                while (!CPU.data_out_valid != 1) @(posedge clk);
+                $display("Data Out Valid Set High");
+
+                while (CPU.data_out != data_in) @(posedge clk);
+                $display("data_out, %h/%c, recieved", CPU.data_out , CPU.data_out);
+
+                while (CPU.MMapSel_signal != 2) @(posedge clk);
+                $display("UART_tx happening in ex stage");
+
+                while (CPU.data_in!= data_in) @(posedge clk);
+                $display("UART_tx, in IO MMap Mem %h/%c", CPU.data_in, CPU.data_in);
+                while (!data_out_valid) @(posedge clk); 
+                $display("Got %h/%b", data_out, data_out);
+
                 done = 1;
             end
             begin
-                repeat (50000) @(posedge clk);
+                repeat (150000) @(posedge clk);
                 if (!done) begin
                     $display("Failed: timing out");
                     $finish();
