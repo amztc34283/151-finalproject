@@ -1,6 +1,6 @@
 module uart #(
     parameter CLOCK_FREQ = 125_000_000,
-    parameter BAUD_RATE = 115_200)
+    parameter BAUD_RATE = 45_000)
 (
     input clk,
     input reset,

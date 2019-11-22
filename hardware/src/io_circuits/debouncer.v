@@ -7,7 +7,7 @@ module debouncer #(
 (
     input clk,
     input [width-1:0] glitchy_signal,
-    output [width-1:0] debounced_signal
+    output reg [width-1:0] debounced_signal
 );
     // Create your debouncer circuit
     // The debouncer takes in a bus of 1-bit synchronized, but glitchy signals
