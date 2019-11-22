@@ -12,6 +12,11 @@ int main(void)
         char byte = RECV_DATA;
         while (!TRAN_CTRL) ;
         TRAN_DATA = byte;
+
+        while (!RECV_CTRL) ;
+        byte = RECV_DATA;
+        while (!TRAN_CTRL) ;
+        TRAN_DATA = byte;
     }
 
     return 0;

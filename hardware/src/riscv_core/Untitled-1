@@ -1,0 +1,6 @@
+data_out_valid is set by the reciever uart
+data_out_ready should be asserted by lw @ 8000 0004
+
+data_in_ready is set the transmitter uart
+data_in_valid is set asserted by sw @ 8000 0008
+
