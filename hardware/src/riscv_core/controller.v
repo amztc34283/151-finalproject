@@ -9,6 +9,7 @@
 `define AUIPC 5
 `define LUI 13
 `define CSRW 28
+`define RST 1
 
 `define SUB 8
 `define ADD 0
@@ -88,11 +89,11 @@ module controller(
     output reg data_in_valid
     );
 
-    reg [31:0] ex_inst_reg = 32'h00000013;
-    reg [31:0] mem_wb_inst_reg = 32'h00000013;
+    reg [31:0] ex_inst_reg;
+    reg [31:0] mem_wb_inst_reg;
 
-    reg [4:0] ex_state = 2;
-    reg [4:0] mem_wb_state = 2;
+    wire [4:0] ex_state;
+    wire [4:0] mem_wb_state;
 
     reg [31:0] ALU_out_mem;
 
@@ -105,18 +106,21 @@ module controller(
                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                 ((mem_wb_state != `BRANCH) &&
                 (mem_wb_state != `STORE) &&
-                (mem_wb_state != `X)) &&
+                (mem_wb_state != `X) &&
+                (mem_wb_state != `RST)) &&
                 ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                (ex_state != `JAL) && (ex_state != `X)) :
-                (mem_wb_inst_reg[11:7]  != 0) &&
+                (ex_state != `JAL) && (ex_state != `X) &&
+                (ex_state != `RST)) :
+                (mem_wb_inst_reg[11:7]  != 0) && 
                 (ex_inst_reg[19:15] != 0) &&
                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                 ((mem_wb_state != `BRANCH) &&
                 (mem_wb_state != `STORE) &&
-                (mem_wb_state != `X)) &&
+                (mem_wb_state != `X) &&
+                (mem_wb_state != `RST)) &&
                 ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                (ex_state != `JAL) && (ex_state != `X));
-
+                (ex_state != `JAL) && (ex_state != `X) &&
+                (ex_state != `RST));
 
     // assign FA_2 = (mem_wb_inst_reg[11:7]  != 0) &&
     //             (ex_inst_reg[19:15] != 0) &&
@@ -137,11 +141,13 @@ module controller(
                  (mem_wb_inst_reg[11:7] == ex_inst_reg[24:20]) &&
                            ((mem_wb_state != `BRANCH) &&
                            (mem_wb_state != `STORE) &&
-                           (mem_wb_state != `X)) &&
+                           (mem_wb_state != `X) &&
+                           (mem_wb_state != `RST)) &&
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                   (ex_state != `JAL) && (ex_state != `JALR) &&
-                   (ex_state != `LOAD) && (ex_state != `I) &&
-                   (ex_state != `X) && (ex_state != `CSRW));
+                   (ex_state != `JAL) && (ex_state != `JALR) && 
+                   (ex_state != `LOAD) && (ex_state != `I) && 
+                   (ex_state != `X) && (ex_state != `CSRW) &&
+                   (ex_state != `RST));
 
 
    // We wish to forward to FA_1 when instruction in mem/wb uses rd
@@ -152,16 +158,20 @@ module controller(
                     (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                     ((mem_wb_state != `BRANCH) &&
                     (mem_wb_state != `STORE) &&
-                    (mem_wb_state != `X)) &&
+                    (mem_wb_state != `X) &&
+                    (mem_wb_state != `RST)) &&
                     ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                    (inst[6:2] != `JAL) &&  (inst[6:2] != `X)) :
+                    (inst[6:2] != `JAL) &&  (inst[6:2] != `X) && 
+                    (inst[6:2] != `RST)) :
                 (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                 (mem_wb_inst_reg[11:7] != 0) &&
                 (inst[19:15] != 0) && ((mem_wb_state != `BRANCH) &&
                 (mem_wb_state != `STORE) &&
-                (mem_wb_state != `X)) &&
+                (mem_wb_state != `X) &&
+                (mem_wb_state != `RST)) &&
                 ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                (inst[6:2] != `JAL) &&  (inst[6:2] != `X));
+                (inst[6:2] != `JAL) &&  (inst[6:2] != `X) && 
+                (inst[6:2] != `RST));
 
 //    assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
 //                 (mem_wb_inst_reg[11:7] != 0) &&
@@ -186,19 +196,23 @@ module controller(
                    (inst[6:2] != `LOAD) && (inst[6:2] != `I) &&
                    (inst[6:2] != `X) && (inst[6:2] != `CSRW));
 
+    assign ex_state = ex_inst_reg[6:2];
+    assign mem_wb_state = mem_wb_inst_reg[6:2];
     always @(posedge clk) begin
         if (rst) begin
-            ex_inst_reg <= 32'h00000013;
-            mem_wb_inst_reg <= 32'h00000013;
-
-            ex_state <= 2;
-            mem_wb_state <= 2;
+            // ex_inst_reg <= 32'h00000004;
+            // mem_wb_inst_reg <= 32'h00000004;
+                ex_inst_reg <= 32'h00000004;
+            mem_wb_inst_reg <= 32'h00000004;
+            // [6:2] == 000 0100
+            // ex_state <= `RST;
+            // mem_wb_state <= `RST;
         end else begin
             ex_inst_reg <= inst;
             mem_wb_inst_reg <= ex_inst_reg;
 
-            ex_state <= inst[6:2];
-            mem_wb_state <= ex_state;
+            // ex_state <= inst[6:2];
+            // mem_wb_state <= ex_state;
         end
     end
 
@@ -483,7 +497,7 @@ module controller(
             data_out_ready = 0;
 
         end
-        default: begin
+        `RST: begin
             ASel = 0;
             BSel = 1;
             BrUn = 0;
@@ -492,7 +506,24 @@ module controller(
             SSel = 3;
             InstSel = 0;
             PCSel = 2;
+            CSREn = 0;
+            CSRSel = 0;
+            MMapSel = 7;
 
+            data_in_valid = 0;
+            data_out_ready = 0;
+
+        end
+        default: begin
+            ASel = 0;
+            BSel = 1;
+            BrUn = 0;
+            ALUSel = `B;
+            MemRW = 0;
+            SSel = 3;
+            //Changed from 0 to 1 for BIOS MEM test
+            InstSel = 1;
+            PCSel = 0;
             CSREn = 0;
             CSRSel = 0;
 
@@ -593,6 +624,11 @@ module controller(
 
             MMap_DMem_Sel = 0;
 
+        end
+        `RST: begin
+            LdSel = `LOAD_X;
+            WBSel = 0;
+            RegWrEn = 0;
         end
         default: begin
             LdSel = `LOAD_X;

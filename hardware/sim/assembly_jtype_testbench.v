@@ -27,7 +27,7 @@ module assembly_jtype_testbench();
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
             $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
-            $finish();
+            // $finish();
         end
         else begin
             $display("PASS - test %d, got: %d for reg %d", test_num, expected_value, reg_number);
@@ -43,11 +43,15 @@ module assembly_jtype_testbench();
 
     reg done = 0;
     initial begin
+<<<<<<< HEAD
         $readmemh("../../software/assembly_tests/jtype.hex", CPU.imem.mem);
+=======
+        $readmemh("../../software/assembly_jtype/jtype.hex", CPU.bios_mem.mem);
+>>>>>>> fix_isa
 
-        // `ifndef IVERILOG
-        //     $vcdpluson;
-        // `endif
+        `ifndef IVERILOG
+            $vcdpluson;
+        `endif
         `ifdef IVERILOG
             $dumpfile("assembly_jtype_testbench.fst");
             $dumpvars(0,assembly_jtype_testbench);
@@ -84,9 +88,9 @@ module assembly_jtype_testbench();
             end
         join
 
-        // `ifndef IVERILOG
-        //     $vcdplusoff;
-        // `endif
+        `ifndef IVERILOG
+            $vcdplusoff;
+        `endif
         $finish();
     end
 endmodule
