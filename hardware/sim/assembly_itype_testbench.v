@@ -27,7 +27,7 @@ module assembly_itype_testbench();
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
             $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
-            $finish();
+            // $finish();
         end
         else begin
             $display("PASS - test %d, got: %d for reg %d", test_num, expected_value, reg_number);
@@ -43,11 +43,11 @@ module assembly_itype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/assembly_tests/itype.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_itype/itype.hex", CPU.bios_mem.mem);
 
-        // `ifndef IVERILOG
-        //     $vcdpluson;
-        // `endif
+        `ifndef IVERILOG
+            $vcdpluson;
+        `endif
         `ifdef IVERILOG
             $dumpfile("assembly_itype_testbench.fst");
             $dumpvars(0,assembly_itype_testbench);
@@ -121,9 +121,9 @@ module assembly_itype_testbench();
             end
         join
 
-        // `ifndef IVERILOG
-        //     $vcdplusoff;
-        // `endif
+        `ifndef IVERILOG
+            $vcdplusoff;
+        `endif
         $finish();
     end
 endmodule
