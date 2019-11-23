@@ -10,12 +10,6 @@ module reg_file (
     reg [4:0] ex_wa = 0;
     reg [4:0] wb_wa = 0;
 
-    //Initialize all registers to zero
-    integer i;
-    initial begin
-        for (i = 0; i < 32; i = i + 1)
-            registers[i] = 0;
-    end
 
     //Synchronous Write
     //x0 is always 0 in RISC-V

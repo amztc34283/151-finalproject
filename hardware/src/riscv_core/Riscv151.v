@@ -87,6 +87,10 @@ module Riscv151 #(
     wire [3:0] imem_wea;
     wire imem_ena;
 
+    //Wire for pipeline register at IF
+    wire [31:0] PC_next_d;
+    wire [31:0] PC_next_q;
+
     // Remove the comment at step 9
     imem imem (
       .clk(clk),
@@ -98,9 +102,6 @@ module Riscv151 #(
       .doutb(imem_doutb)
     );
 
-    //Wire for pipeline register at IF
-    wire [31:0] PC_next_d;
-    wire [31:0] PC_next_q;
 
     //Pipeline register at IF
     d_ff PC_if_ff (
@@ -132,6 +133,8 @@ module Riscv151 #(
     wire bios_ena, bios_enb;
     // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
     assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1 : 0;
+    // assign bios_ena = {PC_next_d[31], PC_next_d[30], PC_next_d[29], PC_next_d[28]} 
+    //                     == 4'b0100 ? 1 : 0;
     assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1 : 0;
     // Comment below and comment out above for bios inst testing
     // assign bios_ena = 1;

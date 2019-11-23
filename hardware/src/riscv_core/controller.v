@@ -38,12 +38,14 @@
 
 `define WBSEL_X 0
 
-`define UART_CTRL 32'h80000000
-`define UART_RX 32'h80000004
-`define UART_TX 32'h80000008
-`define UART_CC 32'h80000010
-`define UART_IC 32'h80000014
-`define UART_RST 32'h80000018
+`define UART_CTRL 32'h80000000  // 0
+`define UART_RX 32'h80000004    // 1
+`define UART_TX 32'h80000008    // 2
+`define UART_CC 32'h80000010    // 3
+`define UART_IC 32'h80000014    // 4
+`define UART_RST 32'h80000018   // 5
+// Control Injected Nop         // 6
+// Don't Care Value             // 7
 
 // imm_gen control signals
 `define I_TYPE 1
@@ -334,12 +336,13 @@ module controller(
                 `BGE: PCSel = !BrLt ? 1 : 2;
                 `BLTU: PCSel = BrLt ? 1 : 2;
                 `BGEU: PCSel = !BrLt ? 1 : 2;
+                default: PCSel = 0;
             endcase
 
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
+            MMapSel = 6;
 
             data_in_valid = 0;
             data_out_ready = 0;
@@ -357,7 +360,7 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
+            MMapSel = 6;
 
             data_in_valid = 0;
             data_out_ready = 0;
@@ -376,7 +379,7 @@ module controller(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
+            MMapSel = 6;
 
             data_in_valid = 0;
             data_out_ready = 0;

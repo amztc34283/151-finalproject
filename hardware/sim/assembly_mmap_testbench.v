@@ -3,7 +3,7 @@
 /* MODIFY THIS LINE WITH THE HIERARCHICAL PATH TO YOUR REGFILE ARRAY INDEXED WITH reg_number */
 `define REGFILE_ARRAY_PATH CPU.rf.registers[reg_number]
 
-module assembly_btype_testbench();
+module assembly_mmap_testbench();
     reg clk, rst;
     parameter CPU_CLOCK_PERIOD = 20;
     parameter CPU_CLOCK_FREQ = 50_000_000;
@@ -43,15 +43,15 @@ module assembly_btype_testbench();
 
     reg done = 0;
     initial begin
-        $readmemh("../../software/branches_tests/branches_tests.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_mmap/mmap.hex", CPU.bios_mem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;
             $vcdplusmemon();
         `endif
         `ifdef IVERILOG
-            $dumpfile("assembly_btype_testbench.fst");
-            $dumpvars(0,assembly_btype_testbench);
+            $dumpfile("assembly_mmap_testbench.fst");
+            $dumpvars(0,assembly_mmap_testbench);
         `endif
 
         rst = 0;
@@ -76,51 +76,17 @@ module assembly_btype_testbench();
                 check_reg(2, 32'd111, 2);               // Verify that x2 contains 111
                 check_reg(1, 32'd300, 2);               // Verify that x1 contains 300
 
-                // Test bne, branch not taken
-                wait_for_reg_to_equal(20, 32'd4);
-                check_reg(1, 32'd2, 3);
-                // Test bne, branch taken
-                wait_for_reg_to_equal(20, 32'd5);
-                check_reg(1, 32'd2, 3);
+                // Test for lw @ 0x8000_0010 and lw @ 0x8000_0014, read cycle and instruction counter
+                wait_for_reg_to_equal(20, 32'd4);       // Run the simulation untill the flag is set to 4
+                check_reg(2, 32'd0, 3);                 // Verify that x2 contains num cycles
+                check_reg(3, 32'd20, 3);                // Verify that x3 contains num instructions
 
-                // Test blt, branch not taken
-                wait_for_reg_to_equal(20, 32'd6);
-                check_reg(2, 32'd2, 4);
-                wait_for_reg_to_equal(20, 32'd7);
-                check_reg(1, 32'd1000, 4);
-                wait_for_reg_to_equal(20, 32'd7);
-                check_reg(2, 32'h0000009C, 4);
-                // Test blt branch taken
-                wait_for_reg_to_equal(20, 32'd8);
-                check_reg(1, 32'd12345, 4);
+                // Test for sw @ 0x8000_0018, reset counters
+                wait_for_reg_to_equal(20, 32'd5);       // Run the simulation untill the flag is set 5
+                check_reg(2, 32'd3, 4);                 // Verify that x2 contains num cycles, after reset
+                check_reg(3, 32'd1, 4);                 // Verify that x3 contains num inst, after reset
 
-                // Test bge branch taken
-                wait_for_reg_to_equal(20, 32'd9);
-                check_reg(1, 32'h80000000, 5);
-                // Test bge branch not taken
-                wait_for_reg_to_equal(20, 32'd10);
-                check_reg(1, 32'd2, 5);
-
-                // Test bltu branch not taken
-                wait_for_reg_to_equal(20, 32'd11);
-                check_reg(2, 32'd2, 6);
-                check_reg(10, -32'd1, 6);
-                check_reg(11, 32'd1, 6);
-                wait_for_reg_to_equal(20, 32'd12);
-                check_reg(1, 32'd0, 6);
-                // Test bltu branch taken
-                wait_for_reg_to_equal(20, 32'd13);
-                check_reg(1, 32'd0, 6);
-
-                // Test bgeu branch taken
-                wait_for_reg_to_equal(20, 32'd14);
-                check_reg(1, 32'd123, 7);
-                // Test bgeu branch not taken
-                wait_for_reg_to_equal(20, 32'd15);
-                check_reg(1, 32'd2, 7);
-
-
-                $display("ALL BASIC B-TYPE ASSEMBLY TESTS PASSED");
+                $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;
             end
             begin
