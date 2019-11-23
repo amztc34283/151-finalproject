@@ -202,7 +202,7 @@ module controller(
         if (rst) begin
             // ex_inst_reg <= 32'h00000004;
             // mem_wb_inst_reg <= 32'h00000004;
-                ex_inst_reg <= 32'h00000004;
+            ex_inst_reg <= 32'h00000004;
             mem_wb_inst_reg <= 32'h00000004;
             // [6:2] == 000 0100
             // ex_state <= `RST;
