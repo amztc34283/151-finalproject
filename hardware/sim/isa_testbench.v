@@ -29,7 +29,7 @@ module isa_testbench();
         $value$plusargs("hex_file=%s", hex_file);
         $value$plusargs("test_name=%s", test_name);
         $readmemh(hex_file, CPU.dmem.mem);
-        $readmemh(hex_file, CPU.bios_mem.mem);
+        $readmemh(hex_file, CPU.imem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;

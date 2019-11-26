@@ -12,7 +12,7 @@ _start:
 
 # Test 1
 li x10, 100
-li x11, 0
+li x11, 0x10000000
 sw x10, 0(x11)
 lw x1, 0(x11)
 li x20, 1

@@ -82,8 +82,8 @@ done6: sll x1, x10, x12 # x1 = 80000000
 li x20, 9
 
 # Test BGE Branch Not Taken
-li x10, 1
-li x11, 2
+li x10, 0x10000200
+li x11, 0x10000302
 bge x10, x11, branch7
 sb x11, 3(x10)
 lb x1, 3(x10)

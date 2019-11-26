@@ -49,7 +49,7 @@ module Riscv151 #(
 
     reg [7:0] data_out_reg;
 
-    controller controls(
+    controller #(.RESET_PC(RESET_PC)) controls(
       .rst(rst),
       .clk(clk),
       .inst(inst),
@@ -104,7 +104,7 @@ module Riscv151 #(
 
 
     //Pipeline register at IF
-    d_ff PC_if_ff (
+    d_ff #(.RESET_PC(RESET_PC)) PC_if_ff (
         .d(PC_next_d),
         .clk(clk),
         .rst(rst),
@@ -206,7 +206,7 @@ module Riscv151 #(
 
     // Pipeline Registers IF/D -> Ex Stage
     wire [31:0] csrwi_ex_wire;
-    d_ff csrwi_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) csrwi_ex_ff (
         .d( {{27{1'b0}}, inst[19:15]} ),
         .clk(clk),
         .rst(rst),
@@ -214,7 +214,7 @@ module Riscv151 #(
     );
 
     wire [31:0] PC_plus_4_ex;
-    d_ff PC_plus_4_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) PC_plus_4_ex_ff (
         .d(pc_plus_4),
         .clk(clk),
         .rst(rst),
@@ -222,7 +222,7 @@ module Riscv151 #(
     );
 
     wire [31:0] PC_Asel_ex;
-    d_ff PC_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) PC_ex_ff (
         .d(PC_next_q),
         .clk(clk),
         .rst(rst),
@@ -230,7 +230,7 @@ module Riscv151 #(
     );
 
     wire [31:0] rd1_ex;
-    d_ff rs1_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) rs1_ex_ff (
         .d(FA_1_out),
         .clk(clk),
         .rst(rst),
@@ -238,7 +238,7 @@ module Riscv151 #(
     );
 
     wire [31:0] rd2_ex;
-    d_ff rs2_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) rs2_ex_ff (
         .d(FB_1_out),
         .clk(clk),
         .rst(rst),
@@ -246,7 +246,7 @@ module Riscv151 #(
     );
 
     wire [31:0] imm_gen_ex;
-    d_ff imm_gen_ex_ff (
+    d_ff #(.RESET_PC(RESET_PC)) imm_gen_ex_ff (
         .d(imm_out),
         .clk(clk),
         .rst(rst),
@@ -368,14 +368,14 @@ module Riscv151 #(
     );
     // Add condition to dmem read and write
     wire dmem_memrw;
-    assign dmem_memrw = (ALU_out[31:28] == 4'b0001 || ALU_out[31:28] == 4'b0011) ? MemRW_signal : 0 ;
+    // assign dmem_memrw = (ALU_out[31:28] === 4'b00x1) ? MemRW_signal : 0 ;
 
     wire [31:0] dmem_dout;
     dmem dmem (
         .clk(clk),
         // .en(MemRW_signal),
         // Comment above and out below to run with dmem when ALU starts with 00x1
-        .en(dmem_memrw),
+        .en(MemRW_signal),
         .we(dmem_we),
         .addr(ALU_out[15:2]),
         .din(dmem_din),
@@ -385,14 +385,14 @@ module Riscv151 #(
     // imem only enables write when pc_30 is 1 (the pc at mem stage)
     // and ALU out address is 001x, controller needs to be modify
     // ALU_out[31:28] === 4'b001x
-    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? dmem_we : 4'b0000;
-    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? 1 : 0;
+    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] === 4'b001x)) ? dmem_we : 4'b0000;
+    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] === 4'b001x)) ? 1 : 0;
 
     assign imem_addra = ALU_out;
     assign imem_dina = dmem_din;
 
     wire [31:0] alu_mem;
-    d_ff alu_mem_ff (
+    d_ff #(.RESET_PC(RESET_PC)) alu_mem_ff (
         .d(ALU_out),
         .clk(clk),
         .rst(rst),
@@ -407,7 +407,7 @@ module Riscv151 #(
         .out(bios_dmem_signal));
 
     wire [31:0] pc_plus_4_mem;
-    d_ff pc_plus_4_mem_ff (
+    d_ff #(.RESET_PC(RESET_PC)) pc_plus_4_mem_ff (
         .d(PC_plus_4_ex),
         .clk(clk),
         .rst(rst),

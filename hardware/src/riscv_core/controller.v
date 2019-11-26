@@ -56,7 +56,9 @@
 `define J_TYPE 5
 `define X_TYPE 6
 
-module controller(
+module controller #(
+    parameter RESET_PC = 32'h4000_0000) 
+(
     input rst,
     input clk,
     input [31:0] inst,
@@ -202,8 +204,8 @@ module controller(
         if (rst) begin
             // ex_inst_reg <= 32'h00000004;
             // mem_wb_inst_reg <= 32'h00000004;
-            ex_inst_reg <= 32'h00000004;
-            mem_wb_inst_reg <= 32'h00000004;
+            ex_inst_reg <= RESET_PC + 32'h00000004;
+            mem_wb_inst_reg <= RESET_PC + 32'h00000004;
             // [6:2] == 000 0100
             // ex_state <= `RST;
             // mem_wb_state <= `RST;
@@ -504,7 +506,7 @@ module controller(
             ALUSel = `B;
             MemRW = 0;
             SSel = 3;
-            InstSel = 0;
+            InstSel = 1;
             PCSel = 2;
             CSREn = 0;
             CSRSel = 0;
@@ -544,7 +546,11 @@ module controller(
             // Set RegWrEn when ALU_out's first 4 bits are 4’b00x1
             // Make sure it will not load data from DMEM to register
             // when load address is not DMEM
-            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001) ? 1 : 0;
+
+            // Load should stilll occur on mem mapped io instruction
+            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 ||
+                    ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL || 
+                    ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC) ? 1 : 0;
 
             MMap_DMem_Sel = ALU_out_mem == `UART_RX ? 
                             1 : (ALU_out_mem == `UART_CTRL || 

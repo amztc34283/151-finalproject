@@ -1,6 +1,6 @@
 # Ugly test runner for handwritten assembly tests
 # Use ./run_assembly fst for fst wave dump
-# Use ./run_assembly.${1} for vpd wave dump
+# Use ./run_assembly vpd for vpd wave dump
 cwd="$PWD"
 echo $cwd
 rm sim/assembly_tests_results/ -r
@@ -35,6 +35,5 @@ num_failed=$(cat sim/assembly_tests_results/*.log | grep "FAIL -" -i| wc -l)
 num_passed=$(cat sim/assembly_tests_results/*.log | grep "PASS -" -i| wc -l)
 num_total=$((num_failed+num_passed))
 
-echo $failed
 echo "Failed: $num_failed / $num_total"
 echo "Passed: $num_passed / $num_total"
