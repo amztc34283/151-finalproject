@@ -11,4 +11,3 @@
   
 TODO: 
 - Use defined opcodes in /riscv_core/Opcodes.vh
-- Check whether I wired the stuff correctly in riscvcore, if this affects blocks work in EXECUTE + MEM/WB stage, feel free to modify IF/D stage so it works-- or setup your testbench such that it tests the stages independetly; whichever is easiest. Cannot get IF/D stage finished tonight. 
