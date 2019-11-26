@@ -406,6 +406,17 @@ module Riscv151 #(
         .s1(bios_doutb),
         .out(bios_dmem_signal));
 
+    wire [31:0] MMap_BiosDmem_Mux_out;
+    threeonemux MMap_BiosDMem_mux (
+        .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
+        .s0(bios_dmem_signal),          // output of bios_dmem_mux
+        .s1({{24{1'b0}}, data_out}),    // output of UART reciever
+        .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
+        .out(MMap_BiosDmem_Mux_out)     // goes to WB_mux
+    );
+
+
+
     wire [31:0] pc_plus_4_mem;
     d_ff #(.RESET_PC(RESET_PC)) pc_plus_4_mem_ff (
         .d(PC_plus_4_ex),
@@ -419,23 +430,23 @@ module Riscv151 #(
     wire [31:0] ld_out;
     ld_sel ld(
         .sel(LdSel_signal),
-        .din(bios_dmem_signal),
+        .din(MMap_BiosDmem_Mux_out),
         .offset(alu_mem[1:0]), //getting it from instruction after mem stage
         .dout(ld_out)
     );
 
-    wire [31:0] MMap_Ld_Mux_out;
-    threeonemux MMap_DMem_mux (
-        .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
-        .s0(ld_out),                    // output of ld_sel
-        .s1({{24{1'b0}}, data_out}),    // output of UART reciever
-        .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
-        .out(MMap_Ld_Mux_out)           // goes to WB_mux
-    );
+    // wire [31:0] MMap_Ld_Mux_out;
+    // threeonemux MMap_DMem_mux (
+    //     .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
+    //     .s0(ld_out),                    // output of ld_sel
+    //     .s1({{24{1'b0}}, data_out}),    // output of UART reciever
+    //     .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
+    //     .out(MMap_Ld_Mux_out)           // goes to WB_mux
+    // );
 
     threeonemux wb_mux(
       .sel(WBSel_signal),
-      .s0(MMap_Ld_Mux_out),
+      .s0(ld_out),
       .s1(alu_mem),
       .s2(pc_plus_4_mem),
       .out(wd)

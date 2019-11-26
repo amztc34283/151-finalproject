@@ -26,8 +26,8 @@ module assembly_jtype_testbench();
         input [31:0] expected_value;
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
-            $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
-            // $finish();
+            $display("FAIL - test %d, got: %d/%h, expected: %d/%h for reg %d", test_num, `REGFILE_ARRAY_PATH, `REGFILE_ARRAY_PATH, expected_value, expected_value, reg_number);
+            $finish();
         end
         else begin
             $display("PASS - test %d, got: %d for reg %d", test_num, expected_value, reg_number);
@@ -43,11 +43,7 @@ module assembly_jtype_testbench();
 
     reg done = 0;
     initial begin
-<<<<<<< HEAD
-        $readmemh("../../software/assembly_tests/jtype.hex", CPU.imem.mem);
-=======
         $readmemh("../../software/assembly_jtype/jtype.hex", CPU.bios_mem.mem);
->>>>>>> fix_isa
 
         `ifndef IVERILOG
             $vcdpluson;
@@ -72,10 +68,10 @@ module assembly_jtype_testbench();
                 // Test JAL
                 wait_for_reg_to_equal(20, 32'd1);       // Run the simulation until the flag is set to 1
                 check_reg(1, 32'd300, 1);               // Verify that x1 contains 300
-                check_reg(3, 32'd12, 1);
+                check_reg(3, 32'h4000_000c, 1);
 
                 wait_for_reg_to_equal(20, 32'd2);
-                check_reg(1, -32'd164, 1);
+                check_reg(1, 32'd1, 1);
                 $display("ALL BASIC J-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;
             end

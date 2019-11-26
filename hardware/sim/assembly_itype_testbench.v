@@ -26,7 +26,7 @@ module assembly_itype_testbench();
         input [31:0] expected_value;
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
-            $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
+            $display("FAIL - test %d, got: %d/%h, expected: %d/%h for reg %d", test_num, `REGFILE_ARRAY_PATH, `REGFILE_ARRAY_PATH, expected_value, expected_value, reg_number);
             // $finish();
         end
         else begin
@@ -107,7 +107,7 @@ module assembly_itype_testbench();
 
                 // Test AUIPC
                 wait_for_reg_to_equal(20, 32'd11);
-                check_reg(1, 32'h0000005C, 1);
+                check_reg(1, 32'h4000005C, 1);
 
                 $display("ALL BASIC I-TYPE ASSEMBLY TESTS PASSED");
                 done = 1;

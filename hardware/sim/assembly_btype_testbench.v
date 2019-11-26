@@ -26,8 +26,8 @@ module assembly_btype_testbench();
         input [31:0] expected_value;
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
-            $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
-            // $finish();
+            $display("FAIL - test %d, got: %d/%h, expected: %d/%h for reg %d", test_num, `REGFILE_ARRAY_PATH, `REGFILE_ARRAY_PATH, expected_value, expected_value, reg_number);
+            $finish();
         end
         else begin
             $display("PASS - test %d, got: %d for reg %d", test_num, expected_value, reg_number);
@@ -44,6 +44,7 @@ module assembly_btype_testbench();
     reg done = 0;
     initial begin
         $readmemh("../../software/assembly_btype/btype.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/assembly_btype/btype.hex", CPU.dmem.mem);
 
         `ifndef IVERILOG
             $vcdpluson;
@@ -89,7 +90,7 @@ module assembly_btype_testbench();
                 wait_for_reg_to_equal(20, 32'd7);
                 check_reg(1, 32'd1000, 4);
                 wait_for_reg_to_equal(20, 32'd7);
-                check_reg(2, 32'h0000009C, 4);
+                check_reg(2, 32'h4000009C, 4);
                 // Test blt branch taken
                 wait_for_reg_to_equal(20, 32'd8);
                 check_reg(1, 32'd12345, 4);

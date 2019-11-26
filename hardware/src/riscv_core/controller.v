@@ -635,6 +635,8 @@ module controller #(
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
+
+            MMap_DMem_Sel = 0;
         end
         default: begin
             LdSel = `LOAD_X;

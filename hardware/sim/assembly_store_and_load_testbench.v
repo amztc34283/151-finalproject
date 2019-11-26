@@ -26,7 +26,7 @@ module assembly_store_and_load_testbench();
         input [31:0] expected_value;
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
-            $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
+            $display("FAIL - test %d, got: %d/%h, expected: %d/%h for reg %d", test_num, `REGFILE_ARRAY_PATH, `REGFILE_ARRAY_PATH, expected_value, expected_value, reg_number);
             $finish();
         end
         else begin

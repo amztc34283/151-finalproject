@@ -26,7 +26,7 @@ module assembly_mmap_testbench();
         input [31:0] expected_value;
         input [10:0] test_num;
         if (expected_value !== `REGFILE_ARRAY_PATH) begin
-            $display("FAIL - test %d, got: %d, expected: %d for reg %d", test_num, `REGFILE_ARRAY_PATH, expected_value, reg_number);
+            $display("FAIL - test %d, got: %d/%h, expected: %d/%h for reg %d", test_num, `REGFILE_ARRAY_PATH, `REGFILE_ARRAY_PATH, expected_value, expected_value, reg_number);
             // $finish();
         end
         else begin
@@ -78,12 +78,12 @@ module assembly_mmap_testbench();
 
                 // Test for lw @ 0x8000_0010 and lw @ 0x8000_0014, read cycle and instruction counter
                 wait_for_reg_to_equal(20, 32'd4);       // Run the simulation untill the flag is set to 4
-                check_reg(2, 32'd0, 3);                 // Verify that x2 contains num cycles
-                check_reg(3, 32'd20, 3);                // Verify that x3 contains num instructions
+                check_reg(2, 32'd23, 3);                 // Verify that x2 contains num cycles
+                check_reg(3, 32'd21, 3);                // Verify that x3 contains num instructions
 
                 // Test for sw @ 0x8000_0018, reset counters
                 wait_for_reg_to_equal(20, 32'd5);       // Run the simulation untill the flag is set 5
-                check_reg(2, 32'd3, 4);                 // Verify that x2 contains num cycles, after reset
+                check_reg(2, 32'd0, 4);                 // Verify that x2 contains num cycles, after reset
                 check_reg(3, 32'd1, 4);                 // Verify that x3 contains num inst, after reset
 
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
