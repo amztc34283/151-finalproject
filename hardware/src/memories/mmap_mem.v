@@ -30,10 +30,11 @@ module mmap_mem (
             // This control value is set by JAL/JALR/Branch
             // Do not increment instruction counter when stall occurs
             // Modify this after implement branch prediction
-            if (MMap_Sel != 6)
+            if (MMap_Sel != 6 && MMap_Sel != 5)
                 inst_counter <= inst_counter + 1;
 
-            cycle_counter <= cycle_counter + 1;
+            if (MMap_Sel != 5)
+                cycle_counter <= cycle_counter + 1;
 
         end
 
