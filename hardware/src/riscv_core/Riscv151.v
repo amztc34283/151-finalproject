@@ -31,7 +31,7 @@ module Riscv151 #(
     wire FB_2_signal;
     wire [2:0] LdSel_signal;
     wire [1:0] SSel_signal;
-    
+
 
     // IO Wires
     wire [7:0] data_in;
@@ -133,7 +133,7 @@ module Riscv151 #(
     wire bios_ena, bios_enb;
     // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
     assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1 : 0;
-    // assign bios_ena = {PC_next_d[31], PC_next_d[30], PC_next_d[29], PC_next_d[28]} 
+    // assign bios_ena = {PC_next_d[31], PC_next_d[30], PC_next_d[29], PC_next_d[28]}
     //                     == 4'b0100 ? 1 : 0;
     assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1 : 0;
     // Comment below and comment out above for bios inst testing
@@ -346,11 +346,11 @@ module Riscv151 #(
     ) on_chip_uart (
         .clk(clk),
         .reset(rst),
-        .data_in(data_in),                   
-        .data_in_valid(data_in_valid),         // Memory Mapped IO Write Val, set by store @ 0x8000_0008   
+        .data_in(data_in),
+        .data_in_valid(data_in_valid),         // Memory Mapped IO Write Val, set by store @ 0x8000_0008
         .data_out_ready(data_out_ready),       // Memory Mapped IO Write En, set by load @ 0x8000_0004
         .serial_in(FPGA_SERIAL_RX),
-    
+
         .data_in_ready(data_in_ready),          // 0x8000_0000 bit 0
         .data_out(data_out),                    // Memory Mapped IO Read Val
         .data_out_valid(data_out_valid),        // 0x8000_0000 bit 1
@@ -361,10 +361,10 @@ module Riscv151 #(
     mmap_mem mmap_mem (
         .clk(clk),
         .rst(rst),
-        .MMap_Sel(MMapSel_signal),       
-        .data_in_ready(data_in_ready),       // Signal from UART transmitter                     
-        .data_out_valid(data_out_valid),     // Signal from UART reciever        
-        .MMap_dout(mmap_dout)                            
+        .MMap_Sel(MMapSel_signal),
+        .data_in_ready(data_in_ready),       // Signal from UART transmitter
+        .data_out_valid(data_out_valid),     // Signal from UART reciever
+        .MMap_dout(mmap_dout)
     );
     // Add condition to dmem read and write
     wire dmem_memrw;
@@ -385,8 +385,9 @@ module Riscv151 #(
     // imem only enables write when pc_30 is 1 (the pc at mem stage)
     // and ALU out address is 001x, controller needs to be modify
     // ALU_out[31:28] === 4'b001x
-    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] === 4'b001x)) ? dmem_we : 4'b0000;
-    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] === 4'b001x)) ? 1 : 0;
+    // Since ALU_out[31:28] are never 001x; the condition is never true.
+    assign imem_wea = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? dmem_we : 4'b0000;
+    assign imem_ena = (PC_Asel_ex[30] == 1 && (ALU_out[31:28] == 4'b0010 || ALU_out[31:28] == 4'b0011)) ? 1 : 0;
 
     assign imem_addra = ALU_out;
     assign imem_dina = dmem_din;

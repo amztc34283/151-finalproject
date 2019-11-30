@@ -48,8 +48,9 @@ module echo_testbench();
     );
 
     reg done = 0;
+    reg [31:0] cycle = 0;
     initial begin
-        $readmemh("../../software/echo/echo.hex", CPU.bios_mem.mem);
+        $readmemh("../../software/echo/echo.hex", CPU.bios_mem.mem, 0, 4095);
 
         `ifndef IVERILOG
             $vcdpluson;
@@ -102,7 +103,7 @@ module echo_testbench();
                 // which should command the on-chip UART's transmitter to send the same data back to the off-chip UART.
 
                 // Wait for the off-chip UART to receive the echoed data
-                while (!data_out_valid) @(posedge clk); 
+                while (!data_out_valid) @(posedge clk);
                 $display("Got %h/%b", data_out, data_out);
 
                 // Clear the off-chip UART's receiver for another UART packet
@@ -129,13 +130,16 @@ module echo_testbench();
 
                 while (CPU.data_in!= data_in) @(posedge clk);
                 $display("UART_tx, in IO MMap Mem %h/%c", CPU.data_in, CPU.data_in);
-                while (!data_out_valid) @(posedge clk); 
+                while (!data_out_valid) @(posedge clk);
                 $display("Got %h/%b", data_out, data_out);
 
                 done = 1;
             end
             begin
-                repeat (150000) @(posedge clk);
+                for (cycle = 0; cycle < 50000; cycle = cycle + 1) begin
+                    if (done) $finish();
+                    @(posedge clk);
+                end
                 if (!done) begin
                     $display("Failed: timing out");
                     $finish();
