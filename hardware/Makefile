@@ -30,12 +30,16 @@ sim/%.tbi: sim/%.v $(RTL)
 sim/%.fst: sim/%.tbi
 	cd sim && $(VVP) $*.tbi -fst |& tee $*.log
 
+
 # ISA Tests
 sim/isa/isa_testbench.tbi: sim/isa_testbench.v $(RTL) $(SIM_MODELS)
 	mkdir -p sim/isa
 	cd sim/isa && $(IVERILOG) $(IVERILOG_OPTS) -g2012 -o isa_testbench.tbi ../isa_testbench.v $(RTL) $(SIM_MODELS)
 
 sim/isa/%.fst: sim/isa/isa_testbench.tbi $(ABS_TOP)/../software/riscv-isa-tests/%.hex
+	cd sim/isa && $(VVP) isa_testbench.tbi -fst +hex_file=$(word 2,$^) +test_name=$(basename $(notdir $(word 2,$^))) |& tee $(basename $(notdir $(word 2,$^))).log
+
+sim/isa/%.vpd: sim/isa/isa_testbench.tbi $(ABS_TOP)/../software/riscv-isa-tests/%.hex
 	cd sim/isa && $(VVP) isa_testbench.tbi -fst +hex_file=$(word 2,$^) +test_name=$(basename $(notdir $(word 2,$^))) |& tee $(basename $(notdir $(word 2,$^))).log
 
 isa-tests: $(ISA_TESTS_FST)
