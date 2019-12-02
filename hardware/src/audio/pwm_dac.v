@@ -1,4 +1,3 @@
-`timescale 1ns/1ns
 module pwm_dac (
     //clk is pwm_clk_g
     input clk,
