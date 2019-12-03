@@ -368,14 +368,12 @@ module Riscv151 #(
     );
     // Add condition to dmem read and write
     wire dmem_memrw;
-    // assign dmem_memrw = (ALU_out[31:28] === 4'b00x1) ? MemRW_signal : 0 ;
+    assign dmem_memrw = (ALU_out[31:28] == 4'b0011 || ALU_out[31:28] == 4'b0001) ? MemRW_signal : 0 ;
 
     wire [31:0] dmem_dout;
     dmem dmem (
         .clk(clk),
-        // .en(MemRW_signal),
-        // Comment above and out below to run with dmem when ALU starts with 00x1
-        .en(MemRW_signal),
+        .en(dmem_memrw),
         .we(dmem_we),
         .addr(ALU_out[15:2]),
         .din(dmem_din),
