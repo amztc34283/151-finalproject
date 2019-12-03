@@ -3,15 +3,9 @@
 // #include "string.h"
 // #include "memory_map.h"
 
-
-int array[] = {3, 2, 4, 23, 32, 1};
-
-char msg[] = "HELLO WORLD!!";
-
 int main(void)
 {
-    int x = 100;
-    uwrite_int8(x);	
+    char msg[] = "HELLO WORLD!!";
     // int y = x + 500;
 
     // unsigned int t = 1000;
@@ -20,10 +14,10 @@ int main(void)
 
     //char m = msg[3];
 
-    // msg[4] = 'B';
-    // msg[5] = 'C';
-    // msg[6] = 'D';
-    // msg[7] = 'E';
+    msg[4] = 'B';
+    msg[5] = 'C';
+    msg[6] = 'D';
+    msg[7] = 'E';
 
     // char b = msg[4];
     // char c = msg[5];
