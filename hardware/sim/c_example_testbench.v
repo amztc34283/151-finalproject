@@ -78,7 +78,7 @@ module c_example_testbench();
             begin
                 // Wait for the off-chip UART to receive the first transmitted data
                 // x = 100
-                while (!data_out_valid) @(posedge clk); 
+                while (!data_out_valid) @(posedge clk);
                 $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
 
                 // Clear the off-chip UART's receiver for another UART packet
@@ -88,7 +88,7 @@ module c_example_testbench();
 
                 // Wait for the off-chip UART to receive the 2nd transmitted data
                 // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
+                while (!data_out_valid) @(posedge clk);
                 $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
 
                 // Clear the off-chip UART's receiver for another UART packet
@@ -96,155 +96,155 @@ module c_example_testbench();
                 @(posedge clk); #1;
                 data_out_ready = 1'b0;
 
-                // Wait for the off-chip UART to receive the 3rd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
-
-
-                // Wait for the off-chip UART to receive the 2nd transmitted data
-                // y = x + 500
-                while (!data_out_valid) @(posedge clk); 
-                $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
-
-                // Clear the off-chip UART's receiver for another UART packet
-                data_out_ready = 1'b1;
-                @(posedge clk); #1;
-                data_out_ready = 1'b0;
+                // // Wait for the off-chip UART to receive the 3rd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
+                //
+                //
+                // // Wait for the off-chip UART to receive the 2nd transmitted data
+                // // y = x + 500
+                // while (!data_out_valid) @(posedge clk);
+                // $display("Got %h/%b/%d/%c", data_out, data_out, data_out, data_out);
+                //
+                // // Clear the off-chip UART's receiver for another UART packet
+                // data_out_ready = 1'b1;
+                // @(posedge clk); #1;
+                // data_out_ready = 1'b0;
 
 
                 done = 1;
