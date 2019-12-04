@@ -11,7 +11,7 @@ offset - DMEM address last two bits
 module ld_sel(
     input [2:0] sel,
     input [31:0] din,
-    input [1:0] offset,
+    input [4:0] offset,
     output reg [31:0] dout
 );
     wire [31:0] offset_din;
@@ -33,11 +33,11 @@ module ld_sel(
 
     always @( * ) begin
         case (sel)
-            `LOAD_BYTE : dout = $signed(offset_din[0 +: 8]);
-            `LOAD_HALFWORD : dout = $signed(offset_din[0 +: 16]);
+            `LOAD_BYTE : dout = {{24{offset_din[7]}}, offset_din[0 +: 8]};
+            `LOAD_HALFWORD : dout = {{16{offset_din[15]}}, offset_din[0 +: 16]};
             `LOAD_WORD : dout = offset_din[0 +: 32];
-            `LOAD_UNSIGNED_BYTE : dout = offset_din[0 +: 8];
-            `LOAD_UNSIGNED_HALFWORD : dout = offset_din[0 +: 16];
+            `LOAD_UNSIGNED_BYTE : dout = {{24{1'b0}}, offset_din[0 +: 8]};
+            `LOAD_UNSIGNED_HALFWORD : dout = {{16{1'b0}}, offset_din[0 +: 16]};
             default : dout = 0;
         endcase
     end

@@ -65,19 +65,17 @@ module controller #(
     input BrEq,
     input BrLt,
     input [31:0] ALU_out,
-    input data_out_valid,
-    input data_in_ready,
     output reg [1:0] PCSel,
     output reg InstSel,
     output reg RegWrEn,
     output reg [2:0] ImmSel,
-    output reg BrUn,
+    output BrUn,
     output reg BSel,
     output reg ASel,
     output reg [3:0] ALUSel,
     output reg CSREn,
     output reg CSRSel,
-    output reg MemRW,
+    output MemRW,
     output reg [1:0] WBSel,
     output FA_1,
     output FB_1,
@@ -87,8 +85,8 @@ module controller #(
     output reg [1:0] SSel,
     output reg [2:0] MMapSel,
     output reg [1:0] MMap_DMem_Sel,
-    output reg data_out_ready,
-    output reg data_in_valid
+    output data_out_ready,
+    output data_in_valid
     );
 
     reg [31:0] ex_inst_reg;
@@ -254,13 +252,51 @@ module controller #(
     end
 
 
+    assign BrUn = ex_state == `BRANCH ? (ex_inst_reg[14:13] == 2'b11 ? 1 : 0) : 0;
+
+
+    assign MemRW = ex_state == `STORE || ex_state == `LOAD ? 
+                ((ALU_out != `UART_CTRL && ALU_out != `UART_RX && 
+                ALU_out != `UART_CC && ALU_out != `UART_IC &&
+                ALU_out != `UART_TX && ALU_out != `UART_RST) ? 1 : 0) : 0;
+
+    assign data_out_ready = (ex_state == `LOAD && ALU_out == `UART_RX) ? 1 : 0;
+    assign data_in_valid = (ex_state == `STORE && ALU_out == `UART_TX) ? 1 : 0;
+
+
+    always @(*) begin
+            case (ALU_out) 
+                `UART_CTRL : begin 
+                    MMapSel = ex_state == `LOAD ? 0 : 7;
+                end
+                `UART_RX : begin
+                    MMapSel = ex_state == `LOAD ? 1 : 7;
+                end
+                `UART_CC : begin
+                    MMapSel = ex_state == `LOAD ? 3 : 7;
+                end
+                `UART_IC : begin
+                    MMapSel = ex_state == `LOAD ? 4 : 7;
+                end
+                `UART_TX: begin
+                    MMapSel = ex_state == `STORE ? 2 : 7;
+                end
+                `UART_RST: begin 
+                    MMapSel = ex_state == `STORE ? 5 : 7;
+                end
+                default: begin
+                    MMapSel = 7;
+                end
+            endcase    
+    end
+
 
     always @(*) begin
         case (ex_state)
         `LOAD: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0; // Doesn't matter
+            // BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
             // MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
@@ -270,44 +306,13 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-
-            case (ALU_out) 
-                `UART_CTRL : begin 
-                    MMapSel = 0;
-                    MemRW = 0;
-                    data_out_ready = 0;
-                 end
-                `UART_RX : begin
-                    MMapSel = 1;
-                    MemRW = 0;
-                    data_out_ready = 1;
-                end
-                `UART_CC : begin
-                    MMapSel = 3;
-                    MemRW = 0; 
-                    data_out_ready = 0;
-                end
-                `UART_IC : begin
-                    MMapSel = 4;
-                    MemRW = 0;
-                    data_out_ready = 0;
-                end
-                default: begin
-                    MMapSel = 7;
-                    MemRW = 1;
-                    data_out_ready = 0;
-                end
-            endcase
-
-            data_in_valid = 0;
+            // data_in_valid = 0;
 
         end
         `STORE: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
-            // MemRW = 1;
             SSel = ex_inst_reg[13:12];
             InstSel = 0;
             PCSel = 0;
@@ -315,33 +320,11 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            case (ALU_out) 
-                `UART_TX: begin
-                    MMapSel = 2;
-                    MemRW = 0;
-                    data_in_valid = 1;
-                end
-                `UART_RST: begin 
-                    MMapSel = 5;
-                    MemRW = 0;
-                    data_in_valid = 0;
-                end
-                default: begin 
-                    MMapSel = 7;
-                    MemRW = 1;
-                    data_in_valid = 0;
-                end
-            endcase
-
-            data_out_ready = 0;
-
         end
         `BRANCH: begin
             ASel = 1;
             BSel = 1;
-            BrUn = ex_inst_reg[14:13] == 2'b11 ? 1 : 0;
             ALUSel = `ADD;
-            MemRW = 0;
             SSel = 3;
             InstSel = 1;
             // This encoding can be minimized further
@@ -358,36 +341,23 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 6;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
         end
         `JALR: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0;
             ALUSel = `ADD;
-            MemRW = 0;
             SSel = 3;
             InstSel = 1;
             PCSel = 1;
 
             CSREn = 0;
             CSRSel = 0;
-
-            MMapSel = 6;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         `JAL: begin
             ASel = 1;
             BSel = 1;
-            BrUn = 0;
             ALUSel = `ADD;
-            MemRW = 0;
             SSel = 3;
             PCSel = 1;
             InstSel = 1;
@@ -395,38 +365,25 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 6;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         `R: begin
             ASel = 0;
             BSel = 0;
-            BrUn = 0;
             ALUSel = {ex_inst_reg[30], ex_inst_reg[14:12]};
-            MemRW = 0;
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
             CSRSel = 0;
-
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         `I: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0;
             //ALUSel should not use ex_inst_reg[30] for ADDI, SLTI, SLTIU, XORI, ORI, ANDI
             ALUSel = (ex_inst_reg[14:12] == 3'b001 || ex_inst_reg[14:12] == 3'b101) ? {ex_inst_reg[30], ex_inst_reg[14:12]} : {1'b0, ex_inst_reg[14:12]};
-            MemRW = 0;
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
@@ -434,19 +391,14 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
 
          end
         `AUIPC: begin
             ASel = 1;
             BSel = 1;
-            BrUn = 0;
+
             ALUSel = `ADD;
-            MemRW = 0;
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
@@ -454,19 +406,13 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
-
+    
 
          end
         `LUI: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0;
             ALUSel = `B;
-            MemRW = 0;
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
@@ -474,18 +420,12 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
-
+        
         end
         `CSRW: begin
             ASel = 0;
             BSel = 0;
-            BrUn = 0;
             ALUSel = `B;
-            MemRW = 0;
             SSel = 3;
             InstSel = 0;
             PCSel = 0;
@@ -493,46 +433,29 @@ module controller #(
             CSREn = 1;
             CSRSel = ex_inst_reg[14];
 
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         `RST: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0;
             ALUSel = `B;
-            MemRW = 0;
             SSel = 3;
             InstSel = 1;
             PCSel = 2;
             CSREn = 0;
             CSRSel = 0;
-            MMapSel = 7;
 
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         default: begin
             ASel = 0;
             BSel = 1;
-            BrUn = 0;
             ALUSel = `B;
-            MemRW = 0;
             SSel = 3;
-            //Changed from 0 to 1 for BIOS MEM test
             InstSel = 1;
             PCSel = 0;
             CSREn = 0;
             CSRSel = 0;
-
-            MMapSel = 7;
-
-            data_in_valid = 0;
-            data_out_ready = 0;
 
         end
         endcase

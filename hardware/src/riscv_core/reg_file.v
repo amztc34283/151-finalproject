@@ -25,7 +25,7 @@ module reg_file (
     end
 
     //Asynchronous Read
-    assign rd1 = ra1 ? registers[ra1] : 32'd0;
-    assign rd2 = ra2 ? registers[ra2] : 32'd0;
+    assign rd1 = ra1 != 5'd0 ? registers[ra1] : 32'd0;
+    assign rd2 = ra2 != 5'd0 ? registers[ra2] : 32'd0;
 
 endmodule

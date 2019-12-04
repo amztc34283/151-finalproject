@@ -1,0 +1,27 @@
+
+bios_mem.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+40000000 <_start>:
+40000000:	06400093          	li	x1,100
+40000004:	00000597          	auipc	x11,0x0
+40000008:	ffc5a083          	lw	x1,-4(x11) # 40000000 <_start>
+4000000c:	0005a103          	lw	x2,0(x11)
+40000010:	00100a13          	li	x20,1
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1941                	addi	x18,x18,-16
+   2:	0000                	unimp
+   4:	7200                	flw	f8,32(x12)
+   6:	7369                	lui	x6,0xffffa
+   8:	01007663          	bgeu	x0,x16,14 <_start-0x3fffffec>
+   c:	0000000f          	fence	unknown,unknown
+  10:	7205                	lui	x4,0xfffe1
+  12:	3376                	fld	f6,376(x2)
+  14:	6932                	flw	f18,12(x2)
+  16:	7032                	flw	f0,44(x2)
+  18:	0030                	addi	x12,x2,8
