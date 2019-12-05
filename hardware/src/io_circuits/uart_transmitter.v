@@ -70,7 +70,7 @@ module uart_transmitter #(
     localparam  SYMBOL_EDGE_TIME    =   CLOCK_FREQ / BAUD_RATE;
     localparam  CLOCK_COUNTER_WIDTH =   $clog2(SYMBOL_EDGE_TIME);
 
-    reg [8:0] tx_shift;
+    reg [9:0] tx_shift;
     reg [3:0] bit_counter;
     reg [CLOCK_COUNTER_WIDTH-1:0] clock_counter;
 
@@ -89,8 +89,8 @@ module uart_transmitter #(
         end else begin
             if (data_in_valid & data_in_ready) begin
                 clock_counter <= 0;
-                bit_counter <= 9;
-                tx_shift <= {{{data_in}}, 1'b0};
+                bit_counter <= 10;
+                tx_shift <= {1'b1, {{data_in}}, 1'b0};
             end else if (!data_in_ready) begin
                 // Reset the symbol edge clock counter at each symbol edge time
                 // Otherwise increment the clock counter

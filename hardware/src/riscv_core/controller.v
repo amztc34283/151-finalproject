@@ -204,6 +204,8 @@ module controller #(
             // mem_wb_inst_reg <= 32'h00000004;
             ex_inst_reg <= RESET_PC + 32'h00000004;
             mem_wb_inst_reg <= RESET_PC + 32'h00000004;
+            // ex_inst_reg <= RESET_PC; // 32'h00000013;
+            // mem_wb_inst_reg <= RESET_PC; // 32'h00000013;
             // [6:2] == 000 0100
             // ex_state <= `RST;
             // mem_wb_state <= `RST;
@@ -285,7 +287,7 @@ module controller #(
                     MMapSel = ex_state == `STORE ? 5 : 7;
                 end
                 default: begin
-                    MMapSel = 7;
+                    MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 7;
                 end
             endcase
     end
