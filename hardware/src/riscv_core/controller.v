@@ -57,7 +57,7 @@
 `define X_TYPE 6
 
 module controller #(
-    parameter RESET_PC = 32'h4000_0000) 
+    parameter RESET_PC = 32'h4000_0000)
 (
     input rst,
     input clk,
@@ -111,7 +111,7 @@ module controller #(
                 ((ex_state != `LUI) && (ex_state != `AUIPC) &&
                 (ex_state != `JAL) && (ex_state != `X) &&
                 (ex_state != `RST)) :
-                (mem_wb_inst_reg[11:7]  != 0) && 
+                (mem_wb_inst_reg[11:7]  != 0) &&
                 (ex_inst_reg[19:15] != 0) &&
                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                 ((mem_wb_state != `BRANCH) &&
@@ -144,8 +144,8 @@ module controller #(
                            (mem_wb_state != `X) &&
                            (mem_wb_state != `RST)) &&
                    ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-                   (ex_state != `JAL) && (ex_state != `JALR) && 
-                   (ex_state != `LOAD) && (ex_state != `I) && 
+                   (ex_state != `JAL) && (ex_state != `JALR) &&
+                   (ex_state != `LOAD) && (ex_state != `I) &&
                    (ex_state != `X) && (ex_state != `CSRW) &&
                    (ex_state != `RST));
 
@@ -161,7 +161,7 @@ module controller #(
                     (mem_wb_state != `X) &&
                     (mem_wb_state != `RST)) &&
                     ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                    (inst[6:2] != `JAL) &&  (inst[6:2] != `X) && 
+                    (inst[6:2] != `JAL) &&  (inst[6:2] != `X) &&
                     (inst[6:2] != `RST)) :
                 (mem_wb_inst_reg[11:7] == inst[19:15]) &&
                 (mem_wb_inst_reg[11:7] != 0) &&
@@ -170,7 +170,7 @@ module controller #(
                 (mem_wb_state != `X) &&
                 (mem_wb_state != `RST)) &&
                 ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-                (inst[6:2] != `JAL) &&  (inst[6:2] != `X) && 
+                (inst[6:2] != `JAL) &&  (inst[6:2] != `X) &&
                 (inst[6:2] != `RST));
 
 //    assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
@@ -255,8 +255,8 @@ module controller #(
     assign BrUn = ex_state == `BRANCH ? (ex_inst_reg[14:13] == 2'b11 ? 1 : 0) : 0;
 
 
-    assign MemRW = ex_state == `STORE || ex_state == `LOAD ? 
-                ((ALU_out != `UART_CTRL && ALU_out != `UART_RX && 
+    assign MemRW = ex_state == `STORE || ex_state == `LOAD ?
+                ((ALU_out != `UART_CTRL && ALU_out != `UART_RX &&
                 ALU_out != `UART_CC && ALU_out != `UART_IC &&
                 ALU_out != `UART_TX && ALU_out != `UART_RST) ? 1 : 0) : 0;
 
@@ -265,8 +265,8 @@ module controller #(
 
 
     always @(*) begin
-            case (ALU_out) 
-                `UART_CTRL : begin 
+            case (ALU_out)
+                `UART_CTRL : begin
                     MMapSel = ex_state == `LOAD ? 0 : 7;
                 end
                 `UART_RX : begin
@@ -281,13 +281,13 @@ module controller #(
                 `UART_TX: begin
                     MMapSel = ex_state == `STORE ? 2 : 7;
                 end
-                `UART_RST: begin 
+                `UART_RST: begin
                     MMapSel = ex_state == `STORE ? 5 : 7;
                 end
                 default: begin
                     MMapSel = 7;
                 end
-            endcase    
+            endcase
     end
 
 
@@ -406,7 +406,7 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-    
+
 
          end
         `LUI: begin
@@ -420,7 +420,7 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-        
+
         end
         `CSRW: begin
             ASel = 0;
@@ -471,13 +471,13 @@ module controller #(
             // when load address is not DMEM
 
             // Load should stilll occur on mem mapped io instruction
-            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 ||
-                    ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL || 
+            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 || ALU_out_mem[31:28] == 4'b0100 ||
+                    ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL ||
                     ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC) ? 1 : 0;
 
-            MMap_DMem_Sel = ALU_out_mem == `UART_RX ? 
-                            1 : (ALU_out_mem == `UART_CTRL || 
-                                ALU_out_mem == `UART_CC || 
+            MMap_DMem_Sel = ALU_out_mem == `UART_RX ?
+                            1 : (ALU_out_mem == `UART_CTRL ||
+                                ALU_out_mem == `UART_CC ||
                                 ALU_out_mem == `UART_IC ? 2 : 0);
 
         end
@@ -487,7 +487,7 @@ module controller #(
             RegWrEn = 0;
 
             MMap_DMem_Sel = 0;
-            
+
 
         end
         `BRANCH: begin
