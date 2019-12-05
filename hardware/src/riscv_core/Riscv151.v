@@ -76,9 +76,7 @@ module Riscv151 #(
       .SSel(SSel_signal),
       .MMapSel(MMapSel_signal),
       .MMap_DMem_Sel(MMap_DMem_Sel_signal),
-      .data_out_valid(data_out_valid),
       .data_out_ready(data_out_ready),
-      .data_in_ready(data_in_ready),
       .data_in_valid(data_in_valid)
     );
 
@@ -132,10 +130,10 @@ module Riscv151 #(
     wire [31:0] bios_douta, bios_doutb;
     wire bios_ena, bios_enb;
     // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
-    assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1 : 0;
+    assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1'b1 : 1'b0;
     // assign bios_ena = {PC_next_d[31], PC_next_d[30], PC_next_d[29], PC_next_d[28]}
     //                     == 4'b0100 ? 1 : 0;
-    assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1 : 0;
+    assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1'b1 : 1'b0;
     // Comment below and comment out above for bios inst testing
     // assign bios_ena = 1;
     bios_mem bios_mem (
@@ -415,7 +413,6 @@ module Riscv151 #(
     );
 
 
-
     wire [31:0] pc_plus_4_mem;
     d_ff #(.RESET_PC(RESET_PC)) pc_plus_4_mem_ff (
         .d(PC_plus_4_ex),
@@ -430,18 +427,9 @@ module Riscv151 #(
     ld_sel ld(
         .sel(LdSel_signal),
         .din(MMap_BiosDmem_Mux_out),
-        .offset(alu_mem[1:0]), //getting it from instruction after mem stage
+        .offset({{3{1'b0}}, alu_mem[1:0]}), //getting it from instruction after mem stage
         .dout(ld_out)
     );
-
-    // wire [31:0] MMap_Ld_Mux_out;
-    // threeonemux MMap_DMem_mux (
-    //     .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
-    //     .s0(ld_out),                    // output of ld_sel
-    //     .s1({{24{1'b0}}, data_out}),    // output of UART reciever
-    //     .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
-    //     .out(MMap_Ld_Mux_out)           // goes to WB_mux
-    // );
 
     threeonemux wb_mux(
       .sel(WBSel_signal),
