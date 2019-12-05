@@ -42,7 +42,6 @@ module Riscv151 #(
     wire data_out_valid;
 
     wire [2:0] MMapSel_signal;
-    wire [1:0] MMap_DMem_Sel_signal;
 
     wire [31:0] inst;
     wire [31:0] ALU_out;
@@ -75,7 +74,6 @@ module Riscv151 #(
       .LdSel(LdSel_signal),
       .SSel(SSel_signal),
       .MMapSel(MMapSel_signal),
-      .MMap_DMem_Sel(MMap_DMem_Sel_signal),
       .data_out_ready(data_out_ready),
       .data_in_valid(data_in_valid)
     );
@@ -89,7 +87,6 @@ module Riscv151 #(
     wire [31:0] PC_next_d;
     wire [31:0] PC_next_q;
 
-    // Remove the comment at step 9
     imem imem (
       .clk(clk),
       .ena(imem_ena),
@@ -116,8 +113,6 @@ module Riscv151 #(
         .PC_out(pc_plus_4)
     );
 
-
-    // Can we parametrize the bit width of the mux
     threeonemux PCSel_mux (
         .sel(PCSel_signal),
         .s0(pc_plus_4),
@@ -131,11 +126,7 @@ module Riscv151 #(
     wire bios_ena, bios_enb;
     // Set Bios ena and enb to 1 when PC and Addr is 4'b0100 respectively
     assign bios_ena = PC_next_d[31:28] == 4'b0100 ? 1'b1 : 1'b0;
-    // assign bios_ena = {PC_next_d[31], PC_next_d[30], PC_next_d[29], PC_next_d[28]}
-    //                     == 4'b0100 ? 1 : 0;
     assign bios_enb = ALU_out[31:28] == 4'b0100 ? 1'b1 : 1'b0;
-    // Comment below and comment out above for bios inst testing
-    // assign bios_ena = 1;
     bios_mem bios_mem (
       .clk(clk),
       .ena(bios_ena),
@@ -161,9 +152,6 @@ module Riscv151 #(
         .out(inst)
     );
 
-    // Construct your datapath, add as many modules as you want
-    // wire we;
-    // wire [4:0] ra1, ra2, wa;
     wire [31:0] wd;
     wire [31:0] rd1, rd2;
     reg_file rf (
@@ -309,14 +297,6 @@ module Riscv151 #(
         .s1(imm_gen_ex),
         .out(Bsel_out));
 
-    // No longer valid - the issue is due to imemgen
-    // // It is cropped because of the case that user might change the PC
-    // // to something big such that the first four bits are 4'b0100
-    // // in which is representing the BIOS instruction.
-    // // Added signal in controller - B_OR_J
-    // wire [31:0] cropped_ALU_out;
-    // wire [31:0] non_cropped_ALU_out;
-
     alu ALU (
         .op1(Asel_out),
         .op2(Bsel_out),
@@ -338,32 +318,31 @@ module Riscv151 #(
 
     // On-chip UART
     assign data_in = FB_2_out[7:0];
-    uart #(
-        .CLOCK_FREQ(CPU_CLOCK_FREQ),
-        .BAUD_RATE(BAUD_RATE)
-    ) on_chip_uart (
+
+    wire [31:0] mmap_dout;
+    mmap_mem #(
+        .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ),
+        .BAUD_RATE(BAUD_RATE)   
+    ) mmap_mem (
         .clk(clk),
-        .reset(rst),
-        .data_in(data_in),
+        .rst(rst),
+        .en(ALU_out[31]),                    // Read/Write Enable, address MSB == 1
+        .addr(ALU_out[15:0]),                // Lower 16 bits of mmap address
+        .MMap_Sel(MMapSel_signal),           // MMap Control Signal, nop counting, etc
+        .MMap_dout(mmap_dout),               // Output of MMAP_MEM
+
+        // On chip UART ports
+        .data_in(data_in),                     // data_in := FB_2_out[7:0], transmit to offchip UART from CPU
         .data_in_valid(data_in_valid),         // Memory Mapped IO Write Val, set by store @ 0x8000_0008
         .data_out_ready(data_out_ready),       // Memory Mapped IO Write En, set by load @ 0x8000_0004
         .serial_in(FPGA_SERIAL_RX),
 
         .data_in_ready(data_in_ready),          // 0x8000_0000 bit 0
-        .data_out(data_out),                    // Memory Mapped IO Read Val
+        .data_out(data_out),                    // Memory Mapped IO Read Val, receive from offchip UART to CPU
         .data_out_valid(data_out_valid),        // 0x8000_0000 bit 1
         .serial_out(FPGA_SERIAL_TX)
     );
 
-    wire [31:0] mmap_dout;
-    mmap_mem mmap_mem (
-        .clk(clk),
-        .rst(rst),
-        .MMap_Sel(MMapSel_signal),
-        .data_in_ready(data_in_ready),       // Signal from UART transmitter
-        .data_out_valid(data_out_valid),     // Signal from UART reciever
-        .MMap_dout(mmap_dout)
-    );
     // Add condition to dmem read and write
     wire dmem_memrw;
     assign dmem_memrw = (ALU_out[31:28] == 4'b0011 || ALU_out[31:28] == 4'b0001) ? MemRW_signal : 0 ;
@@ -396,22 +375,15 @@ module Riscv151 #(
         .q(alu_mem)
     );
 
-    wire [31:0] bios_dmem_signal;
-    twoonemux BIOS_DMEM_MUX (
-        .sel(alu_mem[30]),
+    wire [31:0] bios_dmem_mmap_out;
+    wire [1:0] bios_dmem_mmap_sel_signal;
+    assign bios_dmem_mmap_sel_signal = alu_mem[31] == 1'b1 ? 2'b10 : {1'b0, alu_mem[30]};
+    threeonemux BIOS_DMEM_MMAP_MUX (
+        .sel(bios_dmem_mmap_sel_signal),
         .s0(dmem_dout),
         .s1(bios_doutb),
-        .out(bios_dmem_signal));
-
-    wire [31:0] MMap_BiosDmem_Mux_out;
-    threeonemux MMap_BiosDMem_mux (
-        .sel(MMap_DMem_Sel_signal),     // top bit addr == 1 ? mmap_dout : ld_out
-        .s0(bios_dmem_signal),          // output of bios_dmem_mux
-        .s1({{24{1'b0}}, data_out}),    // output of UART reciever
-        .s2(mmap_dout),                 // UART_ctrl or UART_IC or UART_cc
-        .out(MMap_BiosDmem_Mux_out)     // goes to WB_mux
-    );
-
+        .s2(mmap_dout),
+        .out(bios_dmem_mmap_out));
 
     wire [31:0] pc_plus_4_mem;
     d_ff #(.RESET_PC(RESET_PC)) pc_plus_4_mem_ff (
@@ -426,7 +398,7 @@ module Riscv151 #(
     wire [31:0] ld_out;
     ld_sel ld(
         .sel(LdSel_signal),
-        .din(MMap_BiosDmem_Mux_out),
+        .din(bios_dmem_mmap_out),
         .offset({{3{1'b0}}, alu_mem[1:0]}), //getting it from instruction after mem stage
         .dout(ld_out)
     );

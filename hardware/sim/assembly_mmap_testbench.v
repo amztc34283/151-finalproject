@@ -78,13 +78,18 @@ module assembly_mmap_testbench();
 
                 // Test for lw @ 0x8000_0010 and lw @ 0x8000_0014, read cycle and instruction counter
                 wait_for_reg_to_equal(20, 32'd4);       // Run the simulation untill the flag is set to 4
-                check_reg(2, 32'd23, 3);                 // Verify that x2 contains num cycles
+                check_reg(2, 32'd23, 3);                // Verify that x2 contains num cycles
                 check_reg(3, 32'd21, 3);                // Verify that x3 contains num instructions
 
                 // Test for sw @ 0x8000_0018, reset counters
                 wait_for_reg_to_equal(20, 32'd5);       // Run the simulation untill the flag is set 5
                 check_reg(2, 32'd0, 4);                 // Verify that x2 contains num cycles, after reset
                 check_reg(3, 32'd1, 4);                 // Verify that x3 contains num inst, after reset
+
+                // Test for lw @ 0x8000_0010 and lw @ 0x8000_0014, read cycle and instruction counter
+                wait_for_reg_to_equal(20, 32'd6);       // Run the simulation untill the flag is set to 4
+                check_reg(2, 32'd19, 5);                // Verify that x2 contains num cycles
+                check_reg(3, 32'd11, 5);                // Verify that x3 contains num instructions
 
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;

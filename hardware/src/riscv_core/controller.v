@@ -83,8 +83,7 @@ module controller #(
     output FB_2,
     output reg [2:0] LdSel,
     output reg [1:0] SSel,
-    output reg [2:0] MMapSel,
-    output reg [1:0] MMap_DMem_Sel,
+    output [2:0] MMapSel,
     output data_out_ready,
     output data_in_valid
     );
@@ -121,17 +120,6 @@ module controller #(
                 ((ex_state != `LUI) && (ex_state != `AUIPC) &&
                 (ex_state != `JAL) && (ex_state != `X) &&
                 (ex_state != `RST));
-
-    // assign FA_2 = (mem_wb_inst_reg[11:7]  != 0) &&
-    //             (ex_inst_reg[19:15] != 0) &&
-    //             (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
-    //             ((mem_wb_state != `BRANCH) &&
-    //             (mem_wb_state != `STORE) &&
-    //             (mem_wb_state != `X)) &&
-    //             ((ex_state != `LUI) && (ex_state != `AUIPC) &&
-    //             (ex_state != `JAL) && (ex_state != `X));
-
-
 
 
    // We wish to forward to FB_2 when instruction in mem/wb uses rd
@@ -173,15 +161,6 @@ module controller #(
                 (inst[6:2] != `JAL) &&  (inst[6:2] != `X) &&
                 (inst[6:2] != `RST));
 
-//    assign FA_1 = (mem_wb_inst_reg[11:7] == inst[19:15]) &&
-//                 (mem_wb_inst_reg[11:7] != 0) &&
-//                 (inst[19:15] != 0) &&
-//                 ((mem_wb_state != `BRANCH) &&
-//                 (mem_wb_state != `STORE) &&
-//                 (mem_wb_state != `X)) &&
-//                 ((inst[6:2] != `LUI) && (inst[6:2] != `AUIPC) &&
-//                 (inst[6:2] != `JAL) &&  (inst[6:2] != `X));
-
 
    // We wish to forward to FB_1 when instruction in mem/wb uses rd
    // and instruction in if/decode uses rs2
@@ -200,21 +179,13 @@ module controller #(
     assign mem_wb_state = mem_wb_inst_reg[6:2];
     always @(posedge clk) begin
         if (rst) begin
-            // ex_inst_reg <= 32'h00000004;
-            // mem_wb_inst_reg <= 32'h00000004;
             ex_inst_reg <= RESET_PC + 32'h00000004;
             mem_wb_inst_reg <= RESET_PC + 32'h00000004;
-            // ex_inst_reg <= RESET_PC; // 32'h00000013;
-            // mem_wb_inst_reg <= RESET_PC; // 32'h00000013;
-            // [6:2] == 000 0100
-            // ex_state <= `RST;
-            // mem_wb_state <= `RST;
+
         end else begin
             ex_inst_reg <= inst;
             mem_wb_inst_reg <= ex_inst_reg;
 
-            // ex_state <= inst[6:2];
-            // mem_wb_state <= ex_state;
         end
     end
 
@@ -225,17 +196,6 @@ module controller #(
             ALU_out_mem <= ALU_out;
     end
 
-    // We may wish to refactor this to use continuously assign
-    // the control signals based on the opcode, such an
-    // implementation should be more resource efficient
-
-    // This representation lets us test the correctness
-    // of the control signals values more easily
-
-    // If a control signal is not relevant for a particular
-    // instruction type, we set it to an arbitrary value
-    // to avoid xxx during synthesis-- the arbitrary value
-    // should not conflict with used values
 
     always @(*) begin
         case (inst[6:2])
@@ -256,7 +216,6 @@ module controller #(
 
     assign BrUn = ex_state == `BRANCH ? (ex_inst_reg[14:13] == 2'b11 ? 1 : 0) : 0;
 
-
     assign MemRW = ex_state == `STORE || ex_state == `LOAD ?
                 ((ALU_out != `UART_CTRL && ALU_out != `UART_RX &&
                 ALU_out != `UART_CC && ALU_out != `UART_IC &&
@@ -265,32 +224,8 @@ module controller #(
     assign data_out_ready = (ex_state == `LOAD && ALU_out == `UART_RX) ? 1 : 0;
     assign data_in_valid = (ex_state == `STORE && ALU_out == `UART_TX) ? 1 : 0;
 
-
-    always @(*) begin
-            case (ALU_out)
-                `UART_CTRL : begin
-                    MMapSel = ex_state == `LOAD ? 0 : 7;
-                end
-                `UART_RX : begin
-                    MMapSel = ex_state == `LOAD ? 1 : 7;
-                end
-                `UART_CC : begin
-                    MMapSel = ex_state == `LOAD ? 3 : 7;
-                end
-                `UART_IC : begin
-                    MMapSel = ex_state == `LOAD ? 4 : 7;
-                end
-                `UART_TX: begin
-                    MMapSel = ex_state == `STORE ? 2 : 7;
-                end
-                `UART_RST: begin
-                    MMapSel = ex_state == `STORE ? 5 : 7;
-                end
-                default: begin
-                    MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 7;
-                end
-            endcase
-    end
+    assign MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 7;
+    
 
 
     always @(*) begin
@@ -298,17 +233,13 @@ module controller #(
         `LOAD: begin
             ASel = 0;
             BSel = 1;
-            // BrUn = 0; // Doesn't matter
             ALUSel = `ADD;
-            // MemRW = 1;
             SSel = 3; // Not SW, SB, or SH
             InstSel = 0;
             PCSel = 0;
 
             CSREn = 0;
             CSRSel = 0;
-
-            // data_in_valid = 0;
 
         end
         `STORE: begin
@@ -477,18 +408,12 @@ module controller #(
                     ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL ||
                     ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC) ? 1 : 0;
 
-            MMap_DMem_Sel = ALU_out_mem == `UART_RX ?
-                            1 : (ALU_out_mem == `UART_CTRL ||
-                                ALU_out_mem == `UART_CC ||
-                                ALU_out_mem == `UART_IC ? 2 : 0);
 
         end
         `STORE: begin
             LdSel = 7;
             WBSel = `WBSEL_X; // Doesn't matter, since RegWrEn == 0
             RegWrEn = 0;
-
-            MMap_DMem_Sel = 0;
 
 
         end
@@ -497,7 +422,6 @@ module controller #(
             WBSel = `WBSEL_X;
             RegWrEn = 0;
 
-            MMap_DMem_Sel = 0;
 
         end
         `JALR: begin
@@ -505,7 +429,7 @@ module controller #(
             WBSel = 2;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
+
 
         end
         `JAL: begin
@@ -513,7 +437,6 @@ module controller #(
             WBSel = 2;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
 
         end
         `R: begin
@@ -521,7 +444,7 @@ module controller #(
             WBSel = 1;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
+
 
         end
         `I: begin
@@ -529,7 +452,6 @@ module controller #(
             WBSel = 1;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
 
         end
         `AUIPC: begin
@@ -537,7 +459,7 @@ module controller #(
             WBSel = 1;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
+
 
         end
         `LUI: begin
@@ -545,7 +467,7 @@ module controller #(
             WBSel = 1;
             RegWrEn = 1;
 
-            MMap_DMem_Sel = 0;
+
 
         end
         `CSRW: begin
@@ -553,22 +475,18 @@ module controller #(
             WBSel = `WBSEL_X;
             RegWrEn = 0;
 
-            MMap_DMem_Sel = 0;
-
         end
         `RST: begin
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
 
-            MMap_DMem_Sel = 0;
         end
         default: begin
             LdSel = `LOAD_X;
             WBSel = 0;
             RegWrEn = 0;
 
-            MMap_DMem_Sel = 0;
 
         end
         endcase
