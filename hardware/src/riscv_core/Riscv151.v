@@ -6,7 +6,10 @@ module Riscv151 #(
     input clk,
     input rst,
     input FPGA_SERIAL_RX,
-    output FPGA_SERIAL_TX
+    output FPGA_SERIAL_TX,
+    input [2:0] clean_buttons,
+    input [1:0] switches,
+    output [5:0] leds
 );
 
     // Finish wiring modules
@@ -320,9 +323,11 @@ module Riscv151 #(
     assign data_in = FB_2_out[7:0];
 
     wire [31:0] mmap_dout;
+    wire [2:0] fifo_buttons;
+    wire [31:0] mmap_or_fifo_buttons;
     mmap_mem #(
         .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ),
-        .BAUD_RATE(BAUD_RATE)   
+        .BAUD_RATE(BAUD_RATE)
     ) mmap_mem (
         .clk(clk),
         .rst(rst),
@@ -340,7 +345,14 @@ module Riscv151 #(
         .data_in_ready(data_in_ready),          // 0x8000_0000 bit 0
         .data_out(data_out),                    // Memory Mapped IO Read Val, receive from offchip UART to CPU
         .data_out_valid(data_out_valid),        // 0x8000_0000 bit 1
-        .serial_out(FPGA_SERIAL_TX)
+        .serial_out(FPGA_SERIAL_TX),
+
+        // User I/O
+        .leds(leds),
+        .data(ALU_out),
+        .switches(switches),
+        .buttons(clean_buttons),
+        .fifo_buttons(fifo_buttons)
     );
 
     // Add condition to dmem read and write
@@ -375,6 +387,8 @@ module Riscv151 #(
         .q(alu_mem)
     );
 
+    assign mmap_or_fifo_buttons = (ALU_out == 32'h80000024) ? fifo_buttons : mmap_dout;
+
     wire [31:0] bios_dmem_mmap_out;
     wire [1:0] bios_dmem_mmap_sel_signal;
     assign bios_dmem_mmap_sel_signal = alu_mem[31] == 1'b1 ? 2'b10 : {1'b0, alu_mem[30]};
@@ -382,7 +396,7 @@ module Riscv151 #(
         .sel(bios_dmem_mmap_sel_signal),
         .s0(dmem_dout),
         .s1(bios_doutb),
-        .s2(mmap_dout),
+        .s2(mmap_or_fifo_buttons),
         .out(bios_dmem_mmap_out));
 
     wire [31:0] pc_plus_4_mem;

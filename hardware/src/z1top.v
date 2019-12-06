@@ -121,7 +121,10 @@ module z1top #(
         .clk(cpu_clk_g),
         .rst(reset),
         .FPGA_SERIAL_RX(cpu_rx),
-        .FPGA_SERIAL_TX(cpu_tx)
+        .FPGA_SERIAL_TX(cpu_tx),
+        .clean_buttons(clean_buttons),
+        .switches(SWITCHES),
+        .leds(LEDS)
     );
 
     (* IOB = "true" *) reg fpga_serial_tx_iob;

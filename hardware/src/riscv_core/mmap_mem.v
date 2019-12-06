@@ -6,12 +6,17 @@
 `define MM_UART_RST 16'h0018   // 5
 // Control Injected Nop         // 6
 // Don't Care Value             // 7
+// User I/O
+`define GPIO_FIFO_EMPTY 16'h0020
+`define GPIO_FIFO_READ 16'h0024
+`define SWITCHES 16'h0028
+`define GPIO_LEDS 16'h0030
 
 
 module mmap_mem #(
     parameter CPU_CLOCK_FREQ = 125_000_000,
     parameter BAUD_RATE = 45_000)
-(    
+(
   input clk,
   input rst,
   input en,
@@ -28,7 +33,14 @@ module mmap_mem #(
   input data_out_ready,
 
   input serial_in,
-  output serial_out
+  output serial_out,
+
+  // User I/O
+  output reg [5:0] leds,
+  input [31:0] data,
+  input [1:0] switches,
+  input [2:0] buttons,
+  output [2:0] fifo_buttons
 );
 
     reg [31:0] cycle_counter;
@@ -51,6 +63,28 @@ module mmap_mem #(
         .serial_out(serial_out)
     );
 
+    wire wr_en;
+    assign wr_en = |buttons;
+    wire empty;
+    wire [2:0] fifo_out;
+    wire rd_en;
+
+    // For User I/O Buttons
+    fifo #(
+        .data_width(3),
+        .fifo_depth(32)
+    ) DUT (
+        .clk(clk),
+        .rst(rst),
+        .wr_en(wr_en), // wr_en is high when either of the buttons are pressed
+        .din(buttons), // all buttons status
+        .full(), // full can be ignored for now
+        .rd_en(rd_en), // address
+        // TODO: FIFO_BUTTONS has to be muxed with MMap_dout
+        .dout(fifo_buttons), // 32'h80000024
+        .empty(empty) // output
+    );
+
     always @(posedge clk) begin
         if (rst) begin
             MMap_dout <= 0;
@@ -60,10 +94,10 @@ module mmap_mem #(
         end else begin
             if (addr != `MM_UART_RST) begin
                 cycle_counter <= cycle_counter + 1;
-                if (MMap_Sel != 6) 
+                if (MMap_Sel != 6)
                     inst_counter <= inst_counter + 1;
             end
-            
+
             if (en) begin
                 case (addr)
                     `MM_UART_CTRL: begin
@@ -85,14 +119,25 @@ module mmap_mem #(
                         cycle_counter <= 0;
                         inst_counter <= 0;
                     end
+                    // Add User I/O
+                    `SWITCHES: begin
+                        MMap_dout <= {{30{1'b0}}, switches};
+                    end
+                    `GPIO_LEDS: begin
+                        leds <= data[5:0];
+                    end
+                    `GPIO_FIFO_EMPTY: begin
+                        MMap_dout <= {{31{1'b0}}, empty};
+                    end
                     default: begin
                         MMap_dout <= 0;
                     end
                 endcase
             end
         end
-
-
   end
+
+  // This is async as fifo is synchronous component.
+  assign rd_en = (addr == `GPIO_FIFO_READ) ? 1 : 0;
 
 endmodule
