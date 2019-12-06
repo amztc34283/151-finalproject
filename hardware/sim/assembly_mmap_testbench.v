@@ -11,9 +11,9 @@ module assembly_mmap_testbench();
     initial clk = 0;
     always #(CPU_CLOCK_PERIOD/2) clk <= ~clk;
 
-    reg [2:0] clean_buttons,
-    reg [1:0] switches,
-    wire [5:0] leds
+    reg [2:0] clean_buttons;
+    reg [1:0] switches;
+    wire [5:0] leds;
 
     Riscv151 # (
         .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
