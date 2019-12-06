@@ -11,13 +11,20 @@ module assembly_mmap_testbench();
     initial clk = 0;
     always #(CPU_CLOCK_PERIOD/2) clk <= ~clk;
 
+    reg [2:0] clean_buttons,
+    reg [1:0] switches,
+    wire [5:0] leds
+
     Riscv151 # (
         .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
     ) CPU(
         .clk(clk),
         .rst(rst),
         .FPGA_SERIAL_RX(),
-        .FPGA_SERIAL_TX()
+        .FPGA_SERIAL_TX(),
+        .clean_buttons(clean_buttons),
+        .switches(switches),
+        .leds(leds)
     );
 
     // A task to check if the value contained in a register equals an expected value
@@ -90,6 +97,15 @@ module assembly_mmap_testbench();
                 wait_for_reg_to_equal(20, 32'd6);       // Run the simulation untill the flag is set to 4
                 check_reg(2, 32'd19, 5);                // Verify that x2 contains num cycles
                 check_reg(3, 32'd11, 5);                // Verify that x3 contains num instructions
+
+                // Test for User I/O - FIFO Empty
+                wait_for_reg_to_equal(20, 32'd7);
+                check_reg(1, 32'd1, 6);
+
+                // Test for User I/O - Button is high; check FIFO empty
+                clean_buttons = 3'b111;
+                wait_for_reg_to_equal(20, 32'd8);
+                check_reg(1, 32'd0, 7);
 
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;

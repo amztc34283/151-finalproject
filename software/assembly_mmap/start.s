@@ -13,10 +13,10 @@ _start:
 # Test BEQ, Branch Taken
 li x2, 100					#1
 beq x0, x0, branch1 		#2 FIRST NOP
-li x2, 123					
+li x2, 123
 branch1: li x1, 500			#3
 li x20, 2					#4
-			
+
 
 
 addi x0, x0, -32			#5
@@ -32,7 +32,7 @@ li x2, 111					#12
 addi x0, x0, 1000			#13
 addi x0, x0, 1000			#14
 j done2						#15 THIRD NOP
-branch2: li x1, 501			
+branch2: li x1, 501
 
 done2: li x20, 3			#16
 
@@ -44,9 +44,9 @@ nop
 nop
 li x20, 4					#22, Set stop flag
 sw x0, 8(x10)				#23, reset the counters
-lw x2, 0(x10)				#24, read cycle counter, expected = 0 
+lw x2, 0(x10)				#24, read cycle counter, expected = 0
 lw x3, 4(x10)				#25, read instruction counter, expected = 1
-li x20, 5 
+li x20, 5
 
 sw x0, 8(x10)				# reset the counters
 j pos2
@@ -65,3 +65,11 @@ nop
 lw x2, 0(x10)				# read cycle counter
 lw x3, 4(x10)				# read instruction counter
 li x20, 6					# Set stop flag, 9 jumps, expected diff of 8
+
+li x10, 0x80000020 # User I/O Empty
+lw x1, 0(x10)
+li x20, 7
+
+add x0, x0, x0     # Put it in idle state
+lw x1, 0(x10)
+li x20, 8
