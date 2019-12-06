@@ -387,7 +387,7 @@ module Riscv151 #(
         .q(alu_mem)
     );
 
-    assign mmap_or_fifo_buttons = (ALU_out == 32'h80000024) ? fifo_buttons : mmap_dout;
+    assign mmap_or_fifo_buttons = (alu_mem == 32'h80000024) ? fifo_buttons : mmap_dout;
 
     wire [31:0] bios_dmem_mmap_out;
     wire [1:0] bios_dmem_mmap_sel_signal;
