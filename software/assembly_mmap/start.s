@@ -70,6 +70,18 @@ li x10, 0x80000020 # User I/O Empty
 lw x1, 0(x10)
 li x20, 7
 
+# The following nops is for the situation that the method
+# wait_for_reg_to_equal bypass lw and li below before
+# setting clean_buttons in testbench.
 add x0, x0, x0     # Put it in idle state
-lw x1, 0(x10)
+add x0, x0, x0     # Put it in idle state
+add x0, x0, x0     # Put it in idle state
+
+lw x1, 0(x10) # fifo should not be empty
 li x20, 8
+
+lw x1, 4(x10) # buttons should be 111
+li x20, 9
+
+lw x1, 8(x10) # switches should be 00
+li x20, 10

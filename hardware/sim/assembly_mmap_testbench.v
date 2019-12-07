@@ -69,6 +69,9 @@ module assembly_mmap_testbench();
         #1;
         rst = 0;
 
+        switches = 2'b00;
+        clean_buttons = 3'b000;
+
         fork
             begin
                 // Your processor should begin executing the code in /software/assembly_tests/start.s
@@ -106,6 +109,14 @@ module assembly_mmap_testbench();
                 clean_buttons = 3'b111;
                 wait_for_reg_to_equal(20, 32'd8);
                 check_reg(1, 32'd0, 7);
+
+                // Test for User I/O - Read Buttons
+                wait_for_reg_to_equal(20, 32'd9);
+                check_reg(1, 32'h00000007, 8);
+
+                // Test for User I/O - Read Switches
+                wait_for_reg_to_equal(20, 32'd10);
+                check_reg(1, 32'h00000000, 9);
 
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;

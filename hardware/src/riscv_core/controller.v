@@ -47,6 +47,10 @@
 `define UART_RST 32'h80000018   // 5
 // Control Injected Nop         // 6
 // Don't Care Value             // 7
+// `define GPIO_FIFO_EMPTY 32'h80000020
+// `define GPIO_FIFO_READ 32'h80000024
+// `define SWITCHES 32'h80000028
+// `define GPIO_LEDS 32'h80000030
 
 // imm_gen control signals
 `define I_TYPE 1
@@ -225,7 +229,7 @@ module controller #(
     assign data_in_valid = (ex_state == `STORE && ALU_out == `UART_TX) ? 1 : 0;
 
     assign MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 7;
-    
+
 
 
     always @(*) begin
@@ -406,7 +410,9 @@ module controller #(
             // Load should stilll occur on mem mapped io instruction
             RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 || ALU_out_mem[31:28] == 4'b0100 ||
                     ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL ||
-                    ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC) ? 1 : 0;
+                    ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC ||
+                    ALU_out_mem[31:28] == 4'b1000) ? 1 : 0;
+            // It is okay to just use 4'b1000 for mmap
 
 
         end
