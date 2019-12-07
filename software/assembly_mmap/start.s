@@ -85,3 +85,10 @@ li x20, 9
 
 lw x1, 8(x10) # switches should be 00
 li x20, 10
+
+add x0, x0, x0     # Put it in idle state
+add x0, x0, x0     # Put it in idle state
+add x0, x0, x0     # Put it in idle state
+
+lw x1, 8(x10)
+li x20, 11

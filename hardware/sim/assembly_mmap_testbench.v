@@ -118,6 +118,12 @@ module assembly_mmap_testbench();
                 wait_for_reg_to_equal(20, 32'd10);
                 check_reg(1, 32'h00000000, 9);
 
+                // Test for User I/O - Read high switches
+                switches = 2'b11;
+                wait_for_reg_to_equal(20, 32'd11);
+                check_reg(1, 32'h00000003, 10);
+
+
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;
             end
