@@ -18,7 +18,10 @@ module isa_testbench();
         .clk(clk),
         .rst(rst),
         .FPGA_SERIAL_RX(),
-        .FPGA_SERIAL_TX()
+        .FPGA_SERIAL_TX(),
+        .clean_buttons(),
+        .switches(),
+        .leds()
     );
 
     reg done = 0;
