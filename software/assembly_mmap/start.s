@@ -92,3 +92,7 @@ add x0, x0, x0     # Put it in idle state
 
 lw x1, 8(x10)
 li x20, 11
+
+li x11, 0x00000011
+sw x11, 10(x10)
+li x20, 12

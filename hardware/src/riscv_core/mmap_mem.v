@@ -124,7 +124,6 @@ module mmap_mem #(
                         MMap_dout <= {{30{1'b0}}, switches};
                     end
                     `GPIO_LEDS: begin
-                        //TODO: BUG - Should not use data
                         leds <= data[5:0];
                     end
                     `GPIO_FIFO_EMPTY: begin

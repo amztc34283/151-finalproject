@@ -123,6 +123,11 @@ module assembly_mmap_testbench();
                 wait_for_reg_to_equal(20, 32'd11);
                 check_reg(1, 32'h00000003, 10);
 
+                // Test for LEDS
+                wait_for_reg_to_equal(20, 32'd12);
+                if (leds != 6'b010001) begin
+                    $display("Failed to write to LEDs.");
+                end
 
                 $display("ALL BASIC MEMORY MAP ASSEMBLY TESTS PASSED");
                 done = 1;

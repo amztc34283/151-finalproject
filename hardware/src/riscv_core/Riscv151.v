@@ -349,7 +349,7 @@ module Riscv151 #(
 
         // User I/O
         .leds(leds),
-        .data(ALU_out),
+        .data(dmem_din),
         .switches(switches),
         .buttons(clean_buttons),
         .fifo_buttons(fifo_buttons)
