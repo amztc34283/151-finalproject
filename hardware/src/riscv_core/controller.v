@@ -87,7 +87,7 @@ module controller #(
     output FB_2,
     output reg [2:0] LdSel,
     output reg [1:0] SSel,
-    output [2:0] MMapSel,
+    output reg [2:0] MMapSel,
     output data_out_ready,
     output data_in_valid
     );
@@ -228,7 +228,8 @@ module controller #(
     assign data_out_ready = (ex_state == `LOAD && ALU_out == `UART_RX) ? 1 : 0;
     assign data_in_valid = (ex_state == `STORE && ALU_out == `UART_TX) ? 1 : 0;
 
-    assign MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 7;
+    // assign MMapSel = ex_state == `BRANCH || ex_state == `JAL || ex_state == `JAL ? 6 : 
+    //                 ex_state == `STORE ? 2 : 7;
 
 
 
@@ -245,6 +246,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 1;
+
         end
         `STORE: begin
             ASel = 0;
@@ -256,6 +259,8 @@ module controller #(
 
             CSREn = 0;
             CSRSel = 0;
+
+            MMapSel = 2;
 
         end
         `BRANCH: begin
@@ -278,6 +283,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 6;
+
         end
         `JALR: begin
             ASel = 0;
@@ -290,6 +297,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 6;
+
         end
         `JAL: begin
             ASel = 1;
@@ -301,6 +310,8 @@ module controller #(
 
             CSREn = 0;
             CSRSel = 0;
+
+            MMapSel = 6;
 
 
         end
@@ -315,6 +326,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
         end
         `I: begin
             ASel = 0;
@@ -328,6 +341,7 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
 
 
          end
@@ -357,6 +371,7 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
 
         end
         `CSRW: begin
@@ -370,6 +385,7 @@ module controller #(
             CSREn = 1;
             CSRSel = ex_inst_reg[14];
 
+            MMapSel = 7;
 
         end
         `RST: begin
@@ -382,6 +398,7 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
 
         end
         default: begin
@@ -393,6 +410,7 @@ module controller #(
             PCSel = 0;
             CSREn = 0;
             CSRSel = 0;
+            MMapSel = 7;
 
         end
         endcase

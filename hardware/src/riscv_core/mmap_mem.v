@@ -12,10 +12,20 @@
 `define SWITCHES 16'h0028
 `define GPIO_LEDS 16'h0030
 
+`define PWM_DUTY_CYCLE 16'h0034
+`define PWM_TX_REQ 16'h0038
+`define PWM_TX_ACK 16'h0040
+
+`define MMAP_LOAD 3'd1
+`define MMAP_STORE 3'd2
+`define MMAP_J_OR_B 3'd6
+`define MMAP_X 3'd7
 
 module mmap_mem #(
     parameter CPU_CLOCK_FREQ = 125_000_000,
-    parameter BAUD_RATE = 45_000)
+    parameter BAUD_RATE = 45_000,
+    parameter RESET_PC = 32'h4000_0000,
+    parameter BUS_WIDTH = 12)
 (
   input clk,
   input rst,
@@ -40,7 +50,12 @@ module mmap_mem #(
   input [31:0] data,
   input [1:0] switches,
   input [2:0] buttons,
-  output [2:0] fifo_buttons
+  output [2:0] fifo_buttons,
+
+  // PWM
+  input clk_rx,
+  input pwm_rst,
+  output square_wave_out
 );
 
     reg [31:0] cycle_counter;
@@ -85,20 +100,56 @@ module mmap_mem #(
         .empty(empty) // output
     );
 
+    // module pwm_dac (
+    //     //clk is pwm_clk_g
+    //     input clk,
+    //     input [11:0] duty_cycle,
+    //     output reg square_wave_out
+    // );
+
+    wire [11:0] pwm_duty_cycle;
+    wire square_wave_out;
+    reg [11:0] duty_cycle_reg;
+    reg tx_req;
+    wire tx_ack;
+    pwm_controller #(
+        .RESET_PC(RESET_PC),
+        .BUS_WIDTH(BUS_WIDTH)
+    ) pwm_controller (
+        .clk1(clk),
+        .clk2(clk_rx),
+        .rst(pwm_rst),
+        .duty_cycle(duty_cycle_reg),
+        .req(tx_req),
+        .ack(tx_ack),
+        .pwm_duty_cycle(pwm_duty_cycle)
+    );
+
+    pwm_dac pwm_dac (
+        .clk(clk_rx),
+        .duty_cycle(pwm_duty_cycle),
+        .square_wave_out(square_wave_out)
+    );
+
+    always @(posedge clk) begin
+        if (addr != `MM_UART_RST) begin
+            cycle_counter <= cycle_counter + 1;
+            if (MMap_Sel != `MMAP_J_OR_B)
+                inst_counter <= inst_counter + 1;
+        end
+    end
+
     always @(posedge clk) begin
         if (rst) begin
             MMap_dout <= 0;
             cycle_counter <= 0;
             inst_counter <= 0;
+            duty_cycle_reg <= 0;
+            tx_req <= 0;
 
-        end else begin
-            if (addr != `MM_UART_RST) begin
-                cycle_counter <= cycle_counter + 1;
-                if (MMap_Sel != 6)
-                    inst_counter <= inst_counter + 1;
-            end
+        end else if (en) begin
 
-            if (en) begin
+            if (MMap_Sel == `MMAP_LOAD) begin
                 case (addr)
                     `MM_UART_CTRL: begin
                         MMap_dout <= {{30{1'b0}}, data_out_valid, data_in_ready};
@@ -115,29 +166,51 @@ module mmap_mem #(
                     `MM_UART_IC: begin
                         MMap_dout <= inst_counter;
                     end
-                    `MM_UART_RST: begin
-                        cycle_counter <= 0;
-                        inst_counter <= 0;
-                    end
+
                     // Add User I/O
                     `SWITCHES: begin
                         MMap_dout <= {{30{1'b0}}, switches};
                     end
-                    `GPIO_LEDS: begin
-                        leds <= data[5:0];
-                    end
                     `GPIO_FIFO_EMPTY: begin
                         MMap_dout <= {{31{1'b0}}, empty};
                     end
+
+                    // PWM Integration
+                    `PWM_TX_ACK: begin
+                        MMap_dout <= {31'd0, tx_ack};
+                    end
+
                     default: begin
                         MMap_dout <= 0;
                     end
                 endcase
+
+
+            end else if (MMap_Sel == `MMAP_STORE) begin
+                case (addr)
+                    `MM_UART_RST: begin
+                        cycle_counter <= 0;
+                        inst_counter <= 0;
+                    end
+
+                    `GPIO_LEDS: begin
+                        leds <= data[5:0];
+                    end
+
+                    `PWM_TX_REQ: begin
+                        tx_req <= data[0];
+                    end
+
+                    `PWM_DUTY_CYCLE: begin
+                        duty_cycle_reg <= data[11:0];
+                    end
+                endcase
             end
+
         end
   end
 
   // This is async as fifo is synchronous component.
-  assign rd_en = (addr == `GPIO_FIFO_READ) ? 1 : 0;
+  assign rd_en = (MMap_Sel == `MMAP_LOAD && addr == `GPIO_FIFO_READ) ? 1 : 0;
 
 endmodule

@@ -9,7 +9,10 @@ module Riscv151 #(
     output FPGA_SERIAL_TX,
     input [2:0] clean_buttons,
     input [1:0] switches,
-    output [5:0] leds
+    output [5:0] leds,
+    input clk_rx,
+    input pwm_rst,
+    output square_wave_out
 );
 
     // Finish wiring modules
@@ -352,7 +355,12 @@ module Riscv151 #(
         .data(dmem_din),
         .switches(switches),
         .buttons(clean_buttons),
-        .fifo_buttons(fifo_buttons)
+        .fifo_buttons(fifo_buttons),
+
+        // PWM Integration
+        .clk_rx(clk_rx),
+        .pwm_rst(pwm_rst),
+        .square_wave_out(square_wave_out)
     );
 
     // Add condition to dmem read and write
@@ -387,7 +395,7 @@ module Riscv151 #(
         .q(alu_mem)
     );
 
-    assign mmap_or_fifo_buttons = (alu_mem == 32'h80000024) ? fifo_buttons : mmap_dout;
+    assign mmap_or_fifo_buttons = (alu_mem == 32'h80000024) ? {29'd0, fifo_buttons} : mmap_dout;
 
     wire [31:0] bios_dmem_mmap_out;
     wire [1:0] bios_dmem_mmap_sel_signal;
