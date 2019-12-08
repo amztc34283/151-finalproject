@@ -45,5 +45,7 @@ module nco_scaler_summer (
     assign sawtooth_out = $signed(sawtooth_lut[accumulated_value[23:16]]) >>> sawtooth_shift;
 
     assign sum_out = sine_out + square_out + triangle_out + sawtooth_out;
+    // Comment out below and comment above when testing nco_scaler_summer_tb.
+    // assign sum_out = sine_out;
 
 endmodule

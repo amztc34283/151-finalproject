@@ -1,4 +1,4 @@
-`timescale 1ns/100ps
+`timescale 1ns/1ns
 
 `define CLK_PERIOD 8
 
@@ -22,6 +22,7 @@ module nco_scaler_summer_tb ();
     );
 
     integer i;
+    integer shift_amount;
 
     initial begin
         `ifndef IVERILOG
@@ -29,22 +30,33 @@ module nco_scaler_summer_tb ();
         `endif
         `ifdef IVERILOG
             $dumpfile("nco_scaler_summer_tb.fst");
-            $dumpvars(0,nco_scaler_summer_tb.DUT);
+            $dumpvars(0,nco_scaler_summer_tb);
         `endif
         $readmemb("../src/audio/sine.bin", DUT.sine_lut);
         $readmemb("../src/audio/square.bin", DUT.square_lut);
         $readmemb("../src/audio/triangle.bin", DUT.triangle_lut);
         $readmemb("../src/audio/sawtooth.bin", DUT.sawtooth_lut);
-        $readmemb("../src/audio/golden.bin", golden_lut);
+
+        // This signal is at 880 Hz and sampled at 30kHz.
+        $readmemb("../src/audio/golden_without_interpolation.bin", golden_lut);
 
         sine_shift = 0;
         square_shift = 0;
         triangle_shift = 0;
         sawtooth_shift = 0;
 
-        for (i = 0; i < 256; i=i+1) begin
+        shift_amount = (2**24)*880/30000;
+
+        // NOTE: GO CHECK nco_scaler_summer.v IF FAILS
+        // MOST LIKELY, SOMETHING HAS TO BE COMMENTED OUT 
+
+        for (i = 0; i < 2**24; i=i+shift_amount) begin
             #1;
-            accumulated_value = {i,16'h00000};
+            accumulated_value = i;
+            if (sum_out != golden_lut[i]) begin
+                $display("Golden does not match with nco output.");
+                $finish();
+            end
         end
 
         $display("All Test Passed.");
