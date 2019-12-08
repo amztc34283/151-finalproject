@@ -21,6 +21,8 @@ module piano_integration_testbench ();
     wire        data_out_valid;
     reg         data_out_ready;
 
+    reg [2:0] buttons = 0;
+
     z1top #(
         .SYSTEM_CLOCK_FREQ(SYSTEM_CLK_FREQ),
         .B_SAMPLE_COUNT_MAX(5),
@@ -29,8 +31,8 @@ module piano_integration_testbench ();
         .BAUD_RATE(BAUD_RATE)
     ) top (
         .CLK_125MHZ_FPGA(sys_clk),
-        .BUTTONS({3'b0, sys_rst}),
-        .SWITCHES(2'b0),
+        .BUTTONS({buttons, sys_rst}),
+        .SWITCHES(2'b11),
         .LEDS(),
         .FPGA_SERIAL_RX(FPGA_SERIAL_RX),
         .FPGA_SERIAL_TX(FPGA_SERIAL_TX)
@@ -56,7 +58,8 @@ module piano_integration_testbench ();
     reg done = 0;
     reg [31:0] cycle = 0;
     reg [7:0] volume = 0;
-    reg [31:0] delta = 0;
+
+
     initial begin
         $readmemh("../../software/square_piano/square_piano.hex", top.cpu.dmem.mem, 0, 16384-1);
         $readmemh("../../software/square_piano/square_piano.hex", top.cpu.imem.mem, 0, 16384-1);
@@ -78,9 +81,19 @@ module piano_integration_testbench ();
         data_in_valid = 1'b0;
         data_out_ready = 1'b0;
 
+        // SWITCHES[1:0] = 2'b11;
 
         fork
             begin
+
+                buttons[1] = 1;
+                repeat(30) @(posedge sys_clk); #1
+                buttons[1] = 0;
+
+                buttons[1] = 1;
+                repeat(30) @(posedge sys_clk); #1
+                buttons[1] = 0;
+
 
                 // First read the value off switches to observe the volume
                 while (top.cpu.ALU_out != 32'h80000028) @(posedge sys_clk);
@@ -116,8 +129,8 @@ module piano_integration_testbench ();
                 while (top.cpu.ALU_out != 32'h8000_0004) @(posedge sys_clk);
                 $display("UART receive executed by software");
 
-                while (top.cpu.mmap_mem.MMap_dout != data_in) begin @(posedge sys_clk);
-                $display("data_out of mmap_mem is %h/%c, cycles:", data_in, data_in, delta);
+                while (top.cpu.mmap_mem.MMap_dout != data_in) @(posedge sys_clk);
+                $display("data_out of mmap_mem is %h/%c", data_in, data_in);
 
                 // ==========   send_to_pwm(0) START  =========================
                 // Wait for the first instance of PWM_DUTY_CYCLE, step 1a
@@ -154,9 +167,18 @@ module piano_integration_testbench ();
                 while (top.cpu.mmap_mem.tx_ack != 1'b0) @(posedge sys_clk);
                 $display("Checked tx_ack is desasserted");
 
-                // // We now expect COUNTER_RST
+                // We now expect COUNTER_RST
                 while (top.cpu.ALU_out != 32'h8000_0018) @(posedge sys_clk);
                 $display("Cycle Counter Reset");
+
+                // Check square wave out toggles high and low
+                repeat (5) begin
+                    while (top.pwm_out != 0) @(posedge sys_clk);
+                    while (top.pwm_out != 1) @(posedge sys_clk);
+                end 
+                $display("Square Wave Out Emitting");
+
+                done = 1;
 
             end
             begin
