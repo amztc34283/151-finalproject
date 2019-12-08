@@ -192,10 +192,10 @@ module controller #(
             // Naive Branch Prediction, Assume Not Taken
             // Branch:          Ex Stage => Mem Stage
             // Insert Nop:    IF/D Stage => Ex Stage
-            if (ex_state == `BRANCH && PCSel == 2'b01)
-                ex_inst_reg <= `CONTROL_NOP;
-            else
-                ex_inst_reg <= inst;
+            // if (ex_state == `BRANCH && PCSel == 2'b01)
+            //     ex_inst_reg <= `CONTROL_NOP;
+            // else
+            ex_inst_reg <= inst;
 
             mem_wb_inst_reg <= ex_inst_reg;
 
@@ -277,8 +277,11 @@ module controller #(
             BSel = 1;
             ALUSel = `ADD;
             SSel = 3;
-            // Naive Branch Prediction, Assume Not Taken
-            InstSel = 0;
+            // // Naive Branch Prediction, Assume Not Taken
+            // InstSel = 0;
+
+            // Always Stall
+            InstSel = 1;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 2;

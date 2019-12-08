@@ -332,7 +332,9 @@ module mmap_mem #(
                     // `NOTE_RESET: begin
                     //     // TODO
                     // end
-
+                    default: begin
+                        MMap_dout <= 32'd0;
+                    end
                 endcase
             end
 
