@@ -63,7 +63,8 @@ module assembly_mmap_testbench();
 
         rst = 0;
 
-        // Reset the CPU
+        // Reset the CPU`
+        
         rst = 1;
         repeat (1) @(posedge clk);             // Hold reset for 30 cycles
         #1;

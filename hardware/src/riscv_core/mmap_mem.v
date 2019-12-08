@@ -21,6 +21,23 @@
 `define MMAP_J_OR_B 3'd6
 `define MMAP_X 3'd7
 
+`define NCO_SINE 16'h0200
+`define NCO_SQUARE 16'h0204
+`define NCO_TRIANGLE 16'h0208
+`define NCO_SAWTOOTH 16'h020c
+`define FCW 16'h1000
+
+`define GLOBAL_GAIN_SHIFT 16'h0104
+`define PWM_DAC_SOURCE 16'h0044
+
+`define GLOBAL_SYNTH_RESET 16'h0100;
+`define NOTE_START 16'h1004;
+`define NOTE_RELEASE 16'h1008;
+`define NOTE_FINISHED 16'h100c;
+`define NOTE_RESET 16'h1010;
+
+
+
 module mmap_mem #(
     parameter CPU_CLOCK_FREQ = 125_000_000,
     parameter BAUD_RATE = 45_000,
@@ -100,18 +117,15 @@ module mmap_mem #(
         .empty(empty) // output
     );
 
-    // module pwm_dac (
-    //     //clk is pwm_clk_g
-    //     input clk,
-    //     input [11:0] duty_cycle,
-    //     output reg square_wave_out
-    // );
-
     wire [11:0] pwm_duty_cycle;
-    wire square_wave_out;
-    reg [11:0] duty_cycle_reg;
+    wire [11:0] duty_cycle_synth;
+    reg [11:0] duty_cycle_cpu;
+    wire [11:0] duty_cycle;
+    reg source;
+    assign duty_cycle = source ? duty_cycle_synth : duty_cycle_cpu;
     reg tx_req;
     wire tx_ack;
+
     pwm_controller #(
         .RESET_PC(RESET_PC),
         .BUS_WIDTH(BUS_WIDTH)
@@ -119,7 +133,7 @@ module mmap_mem #(
         .clk1(clk),
         .clk2(clk_rx),
         .rst(pwm_rst),
-        .duty_cycle(duty_cycle_reg),
+        .duty_cycle(duty_cycle),
         .req(tx_req),
         .ack(tx_ack),
         .pwm_duty_cycle(pwm_duty_cycle)
@@ -131,21 +145,90 @@ module mmap_mem #(
         .square_wave_out(square_wave_out)
     );
 
+    reg [23:0] fcw_reg;
+    wire [23:0] accumulated_value;
+    wire ready;
+    wire valid;
+
+    // ?? 'Note' Encoding ?? reg note_reset, note_start, note_release, glbl_synth_rst;
+    phase_accum phase_accum (
+        .clk(clk),
+        .fcw(fcw_reg),
+        .ready(ready),
+        .note_start(),
+        .note_release(),
+        .note_reset(),
+        .accumulated_value(accumulated_value),
+        .valid(valid)
+    );
+
+    reg [4:0] sine_shift, square_shift, triangle_shift, sawtooth_shift;
+    wire [19:0] sum_out;
+    nco_scaler_summer nco_scaler_summer (
+        .accumulated_value(accumulated_value),
+        .sine_shift(sine_shift),
+        .square_shift(square_shift),
+        .triangle_shift(triangle_shift),
+        .sawtooth_shift(sawtooth_shift),
+        .sum_out(sum_out)
+
+        // .sine_out(),
+        // .square_out(),
+        // .triangle_out(),
+        // .sawtooth_out()
+    );
+
+
+    reg [4:0] global_gain;
+    wire [11:0] truncated_value;
+    global_gain_truncator global_gain_truncator(
+        .global_gain(global_gain),
+        .summer_value(sum_out),
+        .truncated_value(truncated_value)
+    );
+
+
+    buffer #(
+        .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
+    ) buffer (
+        .clk(clk),
+        .valid(valid),
+        .rst(rst),  // Synth Reset? PWM Reset? Or CPU Reset?
+        .from_truncator(truncated_value),
+        .to_cdc(duty_cycle_synth),
+        .ready(ready)
+    );
+
+    // Seperated cycle/inst counter increment to avoid
+    // multiple drivers
     always @(posedge clk) begin
         if (addr != `MM_UART_RST) begin
             cycle_counter <= cycle_counter + 1;
             if (MMap_Sel != `MMAP_J_OR_B)
                 inst_counter <= inst_counter + 1;
+        end else if (addr == `MM_UART_RST || rst) begin
+            cycle_counter <= 0;
+            inst_counter <= 0;
         end
     end
 
     always @(posedge clk) begin
         if (rst) begin
             MMap_dout <= 0;
-            cycle_counter <= 0;
-            inst_counter <= 0;
-            duty_cycle_reg <= 0;
+
+            duty_cycle_cpu <= 0;
             tx_req <= 0;
+
+            fcw_reg <= 0;
+            sine_shift <= 0;
+            square_shift <= 0; 
+            triangle_shift <= 0;
+            sawtooth_shift <= 0;
+
+            global_gain <= 0;
+
+            source <= 0;
+            
 
         end else if (en) begin
 
@@ -180,19 +263,19 @@ module mmap_mem #(
                         MMap_dout <= {31'd0, tx_ack};
                     end
 
+                    // `NOTE_FINISHED: begin
+                    //     // TODO
+                    //     MMap_dout <= 32'd0;
+                    // end
+
                     default: begin
-                        MMap_dout <= 0;
+                        MMap_dout <= 32'd0;
                     end
                 endcase
 
 
             end else if (MMap_Sel == `MMAP_STORE) begin
                 case (addr)
-                    `MM_UART_RST: begin
-                        cycle_counter <= 0;
-                        inst_counter <= 0;
-                    end
-
                     `GPIO_LEDS: begin
                         leds <= data[5:0];
                     end
@@ -202,8 +285,54 @@ module mmap_mem #(
                     end
 
                     `PWM_DUTY_CYCLE: begin
-                        duty_cycle_reg <= data[11:0];
+                        duty_cycle_cpu <= data[11:0];
                     end
+
+                    `NCO_SINE: begin
+                        sine_shift <= data[4:0];
+                    end
+
+                    `NCO_SQUARE: begin
+                        square_shift <= data[4:0];
+                    end
+
+                    `NCO_TRIANGLE: begin
+                        triangle_shift <= data[4:0];
+                    end
+
+                    `NCO_SAWTOOTH: begin
+                        sawtooth_shift <= data[4:0];
+                    end
+
+                    `FCW: begin
+                        fcw_reg <= data[23:0];
+                    end
+
+                    `GLOBAL_GAIN_SHIFT: begin
+                        global_gain <= data[4:0];
+                    end
+
+                    `PWM_DAC_SOURCE: begin
+                        source <= data[0];
+                    end
+
+                    // `GLOBAL_SYNTH_RESET: begin
+                    //     // TODO
+
+                    // end;
+
+                    // `NOTE_START: begin
+                    //     // TODO
+                    // end
+
+                    // `NOTE_RELEASE: begin
+                    //     // TODO
+                    // end
+
+                    // `NOTE_RESET: begin
+                    //     // TODO
+                    // end
+
                 endcase
             end
 

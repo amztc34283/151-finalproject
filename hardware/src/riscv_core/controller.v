@@ -368,6 +368,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
+            MMapSel = 7;
+
 
 
          end
