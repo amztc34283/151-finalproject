@@ -60,6 +60,8 @@
 `define J_TYPE 5
 `define X_TYPE 6
 
+`define CONTROL_NOP 32'h00000013
+
 module controller #(
     parameter RESET_PC = 32'h4000_0000)
 (
@@ -100,7 +102,7 @@ module controller #(
 
     reg [31:0] ALU_out_mem;
 
-    // I/O Memory Map Logic
+    // TODO: DISABLE FORWARD FOR INJECTED NOP? 
 
    // Forwarding Logic
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
@@ -187,7 +189,14 @@ module controller #(
             mem_wb_inst_reg <= RESET_PC + 32'h00000004;
 
         end else begin
-            ex_inst_reg <= inst;
+            // Naive Branch Prediction, Assume Not Taken
+            // Branch:          Ex Stage => Mem Stage
+            // Insert Nop:    IF/D Stage => Ex Stage
+            if (ex_state == `BRANCH && PCSel == 2'b01)
+                ex_inst_reg <= `CONTROL_NOP;
+            else
+                ex_inst_reg <= inst;
+
             mem_wb_inst_reg <= ex_inst_reg;
 
         end
@@ -268,11 +277,12 @@ module controller #(
             BSel = 1;
             ALUSel = `ADD;
             SSel = 3;
-            InstSel = 1;
+            // Naive Branch Prediction, Assume Not Taken
+            InstSel = 0;
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
                 `BEQ: PCSel = BrEq ? 1 : 2;
-                `BNE: PCSel = BrEq ? 2 : 1;
+                `BNE: PCSel = !BrEq ? 1 : 2;
                 `BLT: PCSel = BrLt ? 1 : 2;
                 `BGE: PCSel = !BrLt ? 1 : 2;
                 `BLTU: PCSel = BrLt ? 1 : 2;
@@ -283,7 +293,8 @@ module controller #(
             CSREn = 0;
             CSRSel = 0;
 
-            MMapSel = 6;
+            // We assume not taken, so NOP injected if PCSel == 1
+            MMapSel = PCSel == 1 ? 6 : 7;
 
         end
         `JALR: begin
@@ -468,14 +479,13 @@ module controller #(
             WBSel = 1;
             RegWrEn = 1;
 
-
-
         end
         `I: begin
             LdSel = 7;
             WBSel = 1;
-            RegWrEn = 1;
 
+            // Disable RegWrEn if injected control nop
+            RegWrEn = mem_wb_inst_reg != `CONTROL_NOP ? 1 : 0;
 
         end
         `AUIPC: begin

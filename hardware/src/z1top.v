@@ -112,6 +112,17 @@ module z1top #(
         .out({clean_buttons, reset_button})
     );
 
+    // PWM Controller
+    (* IOB = "true" *) reg pwm_iob;
+    wire pwm_out, pwm_rst, reset_button_sync;
+    synchronizer rst_pwm_sync(.async_signal(reset_button), .sync_signal(reset_button_sync), .clk(pwm_clk_g));
+    assign aud_pwm = pwm_iob;
+    assign aud_sd = 1'b1;
+    always @(posedge pwm_clk_g) begin
+        pwm_iob <= pwm_out;
+    end
+    assign pwm_rst = reset_button_sync || ~pwm_clk_pll_lock;
+
     wire cpu_tx, cpu_rx;
     Riscv151 #(
         .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ),
@@ -124,7 +135,10 @@ module z1top #(
         .FPGA_SERIAL_TX(cpu_tx),
         .clean_buttons(clean_buttons),
         .switches(SWITCHES),
-        .leds(LEDS)
+        .leds(LEDS),
+        .clk_rx(pwm_clk_g),
+        .pwm_rst(pwm_rst),
+        .square_wave_out(pwm_out)
     );
 
     (* IOB = "true" *) reg fpga_serial_tx_iob;
@@ -136,15 +150,4 @@ module z1top #(
         fpga_serial_rx_iob <= FPGA_SERIAL_RX;
     end
 
-    // PWM Controller
-    (* IOB = "true" *) reg pwm_iob;
-    wire pwm_out, pwm_rst, reset_button_sync;
-    synchronizer rst_pwm_sync(.async_signal(reset_button), .sync_signal(reset_button_sync), .clk(pwm_clk_g));
-    assign aud_pwm = pwm_iob;
-    assign aud_sd = 1'b1;
-    always @(posedge pwm_clk_g) begin
-        pwm_iob <= pwm_out;
-    end
-    assign pwm_out = 1'b0;
-    assign pwm_rst = reset_button_sync || ~pwm_clk_pll_lock;
 endmodule
