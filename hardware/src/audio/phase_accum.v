@@ -4,13 +4,13 @@ module phase_accum (
     input [23:0] fcw,
     // These inputs are async
     input ready,
-    // Either one of the following inputs will be high
+    // Assuming pulse signals
     input note_start,
-    input note_release, // 
+    input note_release, //
     input note_reset, // reset accumlator
     output reg [23:0] accumulated_value,
-    // output sent, (possibly for pipeline version)
-    output reg valid
+    output reg valid,
+    output reg note_finished
 );
 
 /*
@@ -25,21 +25,31 @@ Workflow with Buffer:
   - phase_accum should never increment its accumulated value.
 */
 
+    reg idle = 1;
     reg [23:0] accumulator = 0;
 
     always @ (posedge clk) begin
         if (note_reset) begin
             accumulator <= 0;
             valid <= 0;
+            idle <= 1;
+            note_finished <= 0;
             // accumulated value can be anything as valid is never 1.
-            // sent <= 0; (possibly for pipeline version)
-        end else if (note_release || !ready) begin
+        end else if (note_release && !idle) begin
             valid <= 0;
-        end else if (note_start && ready) begin
+            idle <= 1;
+            note_finished <= 1;
+        end else if (!idle && ready) begin
             accumulated_value <= accumulator;
             accumulator <= accumulator + fcw;
             valid <= 1;
-            // sent <= 1; (possibly for pipeline version)
+        end else if (idle && note_start && ready) begin
+            accumulated_value <= accumulator;
+            accumulator <= accumulator + fcw;
+            valid <= 1;
+            idle <= 0;
+        end else if (!idle && !ready) begin
+            valid <= 0;
         end
     end
 

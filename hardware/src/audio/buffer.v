@@ -42,17 +42,23 @@ module buffer#(
     reg waiting_ack = 0;
 
     always @(posedge clk) begin
-        // possible bug on valid signal
-        // HANDSHAKE LOGIC
-        if (valid && !counter_state && !waiting_ack) begin
-            // to_cdc has to hold as long as tx_req is high
-            to_cdc <= from_truncator;
-            tx_req <= 1;
-            waiting_ack <= 1;
-        end else if (waiting_ack && tx_ack) begin
+        if (rst) begin
+            to_cdc <= 0;
             tx_req <= 0;
-        end else if (waiting_ack && !tx_ack) begin
             waiting_ack <= 0;
+        end else begin
+            // possible bug on valid signal
+            // HANDSHAKE LOGIC
+            if (valid && !counter_state && !waiting_ack) begin
+                // to_cdc has to hold as long as tx_req is high
+                to_cdc <= from_truncator;
+                tx_req <= 1;
+                waiting_ack <= 1;
+            end else if (waiting_ack && tx_ack) begin
+                tx_req <= 0;
+            end else if (waiting_ack && !tx_ack) begin
+                waiting_ack <= 0;
+            end
         end
 
         // Req High
