@@ -73,6 +73,8 @@ module mmap_mem #(
   input clk_rx,
   input pwm_rst,
   output square_wave_out
+
+  // Signal Chain
 );
 
     reg [31:0] cycle_counter;
@@ -117,12 +119,16 @@ module mmap_mem #(
         .empty(empty) // output
     );
 
-    wire [11:0] pwm_duty_cycle;
-    wire [11:0] duty_cycle_synth;
     reg [11:0] duty_cycle_cpu;
+
+    wire [11:0] pwm_duty_cycle_cpu;
+    wire [11:0] pwm_duty_cycle_synth;
     wire [11:0] duty_cycle;
+
     reg source;
-    assign duty_cycle = source ? duty_cycle_synth : duty_cycle_cpu;
+
+    assign duty_cycle = source ? pwm_duty_cycle_synth : pwm_duty_cycle_cpu;
+
     reg tx_req;
     wire tx_ack;
 
@@ -133,71 +139,112 @@ module mmap_mem #(
         .clk1(clk),
         .clk2(clk_rx),
         .rst(pwm_rst),
-        .duty_cycle(duty_cycle),
+        .duty_cycle(duty_cycle_cpu),
         .req(tx_req),
         .ack(tx_ack),
-        .pwm_duty_cycle(pwm_duty_cycle)
+        .pwm_duty_cycle(pwm_duty_cycle_cpu)
     );
 
-    pwm_dac pwm_dac (
-        .clk(clk_rx),
-        .duty_cycle(pwm_duty_cycle),
-        .square_wave_out(square_wave_out)
-    );
-
+    reg [4:0] sine_shift, square_shift, triangle_shift, sawtooth_shift, global_gain;
     reg [23:0] fcw_reg;
-    wire [23:0] accumulated_value;
-    wire ready;
-    wire valid;
+    wire note_finished;
+    wire note_reset;
+    wire note_start;
+    wire note_release;
 
-    // ?? 'Note' Encoding ?? reg note_reset, note_start, note_release, glbl_synth_rst;
-    phase_accum phase_accum (
-        .clk(clk),
+    signal_chain signal_chain (
+        .clk1(clk),
+        .clk2(clk_rx),
         .fcw(fcw_reg),
-        .ready(ready),
-        .note_start(),
-        .note_release(),
-        .note_reset(),
-        .accumulated_value(accumulated_value),
-        .valid(valid)
-    );
-
-    reg [4:0] sine_shift, square_shift, triangle_shift, sawtooth_shift;
-    wire [19:0] sum_out;
-    nco_scaler_summer nco_scaler_summer (
-        .accumulated_value(accumulated_value),
+        .note_reset(note_reset),
+        .note_start(note_start),
+        .note_release(note_release),
         .sine_shift(sine_shift),
         .square_shift(square_shift),
         .triangle_shift(triangle_shift),
         .sawtooth_shift(sawtooth_shift),
-        .sum_out(sum_out)
-
-        // .sine_out(),
-        // .square_out(),
-        // .triangle_out(),
-        // .sawtooth_out()
-    );
-
-
-    reg [4:0] global_gain;
-    wire [11:0] truncated_value;
-    global_gain_truncator global_gain_truncator(
         .global_gain(global_gain),
-        .summer_value(sum_out),
-        .truncated_value(truncated_value)
+        .note_finished(note_finished),
+        .pwm_duty_cycle(pwm_duty_cycle_synth)
     );
 
-
-    buffer #(
-        .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
-    ) buffer (
-        .clk(clk),
-        .valid(valid),
-        .rst(rst),  // Synth Reset? PWM Reset? Or CPU Reset?
-        .from_truncator(truncated_value),
-        .to_cdc(duty_cycle_synth),
-        .ready(ready)
+    pwm_dac pwm_dac (
+        .clk(clk_rx),
+        .duty_cycle(duty_cycle),
+        .square_wave_out(square_wave_out)
     );
+
+    assign note_reset = (addr == `GLOBAL_SYNTH_RESET || addr == `NOTE_RESET) ? 1 : 0;
+    assign note_start = addr == `NOTE_START ? 1 : 0;
+    assign note_release = addr == `NOTE_RELEASE ? 1 : 0;
+
+    // input clk1,
+    // input clk2,
+    // input [23:0] fcw, // coming from outside register value
+    // input note_reset, // pulse value
+    // input note_start, // pulse value
+    // input note_release, // pulse value
+    // input [4:0] sine_shift, // coming from outside register value
+    // input [4:0] square_shift, // coming from outside register value
+    // input [4:0] triangle_shift, // coming from outside register value
+    // input [4:0] sawtooth_shift, // coming from outside register value
+    // input [4:0] global_gain, // coming from outside register value
+    // output note_finished, // going to write back
+    // output [11:0] pwm_duty_cycle // going to mux
+
+    // reg [23:0] fcw_reg;
+    // wire [23:0] accumulated_value;
+    // wire ready;
+    // wire valid;
+    //
+    // // ?? 'Note' Encoding ?? reg note_reset, note_start, note_release, glbl_synth_rst;
+    // phase_accum phase_accum (
+    //     .clk(clk),
+    //     .fcw(fcw_reg),
+    //     .ready(ready),
+    //     .note_start(), // pulse
+    //     .note_release(), // pulse
+    //     .note_reset(), //pulse
+    //     .accumulated_value(accumulated_value),
+    //     .valid(valid)
+    // );
+    //
+    // reg [4:0] sine_shift, square_shift, triangle_shift, sawtooth_shift;
+    // wire [19:0] sum_out;
+    // nco_scaler_summer nco_scaler_summer (
+    //     .accumulated_value(accumulated_value),
+    //     .sine_shift(sine_shift),
+    //     .square_shift(square_shift),
+    //     .triangle_shift(triangle_shift),
+    //     .sawtooth_shift(sawtooth_shift),
+    //     .sum_out(sum_out)
+    //
+    //     // .sine_out(),
+    //     // .square_out(),
+    //     // .triangle_out(),
+    //     // .sawtooth_out()
+    // );
+    //
+    //
+    // reg [4:0] global_gain;
+    // wire [11:0] truncated_value;
+    // global_gain_truncator global_gain_truncator(
+    //     .global_gain(global_gain),
+    //     .summer_value(sum_out),
+    //     .truncated_value(truncated_value)
+    // );
+    //
+    //
+    // buffer #(
+    //     .CPU_CLOCK_FREQ(CPU_CLOCK_FREQ)
+    // ) buffer (
+    //     .clk(clk),
+    //     .valid(valid),
+    //     .rst(rst),  // Synth Reset? PWM Reset? Or CPU Reset?
+    //     .from_truncator(truncated_value),
+    //     .to_cdc(duty_cycle_synth),
+    //     .ready(ready)
+    // );
 
     // Seperated cycle/inst counter increment to avoid
     // multiple drivers
@@ -221,14 +268,14 @@ module mmap_mem #(
 
             fcw_reg <= 0;
             sine_shift <= 0;
-            square_shift <= 0; 
+            square_shift <= 0;
             triangle_shift <= 0;
             sawtooth_shift <= 0;
 
             global_gain <= 0;
 
             source <= 0;
-            
+
 
         end else if (en) begin
 
@@ -263,10 +310,9 @@ module mmap_mem #(
                         MMap_dout <= {31'd0, tx_ack};
                     end
 
-                    // `NOTE_FINISHED: begin
-                    //     // TODO
-                    //     MMap_dout <= 32'd0;
-                    // end
+                    `NOTE_FINISHED: begin
+                        MMap_dout <= {{31{1'b0}}, note_finished};
+                    end
 
                     default: begin
                         MMap_dout <= 32'd0;
@@ -316,22 +362,6 @@ module mmap_mem #(
                         source <= data[0];
                     end
 
-                    // `GLOBAL_SYNTH_RESET: begin
-                    //     // TODO
-
-                    // end;
-
-                    // `NOTE_START: begin
-                    //     // TODO
-                    // end
-
-                    // `NOTE_RELEASE: begin
-                    //     // TODO
-                    // end
-
-                    // `NOTE_RESET: begin
-                    //     // TODO
-                    // end
                     default: begin
                         MMap_dout <= 32'd0;
                     end

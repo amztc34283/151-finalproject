@@ -1,7 +1,7 @@
 module signal_chain (
     input clk1,
     input clk2,
-    input [23:0] fcw,
+    input [23:0] fcw, // coming from outside register value
     input note_reset, // pulse value
     input note_start, // pulse value
     input note_release, // pulse value
@@ -10,8 +10,8 @@ module signal_chain (
     input [4:0] triangle_shift, // coming from outside register value
     input [4:0] sawtooth_shift, // coming from outside register value
     input [4:0] global_gain, // coming from outside register value
-    output note_finished,
-    output [11:0] pwm_duty_cycle
+    output note_finished, // going to write back
+    output [11:0] pwm_duty_cycle // going to mux
 );
 
     wire [23:0] accumulated_value;
