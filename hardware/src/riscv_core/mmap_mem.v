@@ -30,11 +30,11 @@
 `define GLOBAL_GAIN_SHIFT 16'h0104
 `define PWM_DAC_SOURCE 16'h0044
 
-`define GLOBAL_SYNTH_RESET 16'h0100;
-`define NOTE_START 16'h1004;
-`define NOTE_RELEASE 16'h1008;
-`define NOTE_FINISHED 16'h100c;
-`define NOTE_RESET 16'h1010;
+`define GLOBAL_SYNTH_RESET 16'h0100
+`define NOTE_START 16'h1004
+`define NOTE_RELEASE 16'h1008
+`define NOTE_FINISHED 16'h100c
+`define NOTE_RESET 16'h1010
 
 
 
@@ -367,9 +367,8 @@ module mmap_mem #(
                     end
                 endcase
             end
-
         end
-  end
+    end
 
   // This is async as fifo is synchronous component.
   assign rd_en = (MMap_Sel == `MMAP_LOAD && addr == `GPIO_FIFO_READ) ? 1 : 0;
