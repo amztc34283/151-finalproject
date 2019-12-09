@@ -56,7 +56,6 @@ module buffer#(
                 waiting_ack <= 1;
             end else if (waiting_ack && tx_ack) begin
                 tx_req <= 0;
-            end else if (waiting_ack && !tx_ack) begin
                 waiting_ack <= 0;
             end
         end

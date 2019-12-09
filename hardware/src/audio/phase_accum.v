@@ -39,11 +39,11 @@ Workflow with Buffer:
             valid <= 0;
             idle <= 1;
             note_finished <= 1;
-        end else if (!idle && ready) begin
+        end else if (!idle && ready && !valid) begin
             accumulated_value <= accumulator;
             accumulator <= accumulator + fcw;
             valid <= 1;
-        end else if (idle && note_start && ready) begin
+        end else if (idle && note_start && ready && !valid) begin
             accumulated_value <= accumulator;
             accumulator <= accumulator + fcw;
             valid <= 1;
