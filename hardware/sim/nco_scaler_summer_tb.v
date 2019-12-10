@@ -38,7 +38,8 @@ module nco_scaler_summer_tb ();
         $readmemb("../src/audio/sawtooth.bin", DUT.sawtooth_lut);
 
         // This signal is at 880 Hz and sampled at 30kHz.
-        $readmemb("../src/audio/golden_without_interpolation.bin", golden_lut);
+        // $readmemb("../src/audio/golden_without_interpolation.bin", golden_lut);
+        $readmemb("../src/audio/golden_with_interpolation.bin", golden_lut);
 
         sine_shift = 0;
         square_shift = 0;
@@ -48,7 +49,7 @@ module nco_scaler_summer_tb ();
         shift_amount = (2**24)*880/30000;
 
         // NOTE: GO CHECK nco_scaler_summer.v IF FAILS
-        // MOST LIKELY, SOMETHING HAS TO BE COMMENTED OUT 
+        // MOST LIKELY, SOMETHING HAS TO BE COMMENTED OUT
 
         for (i = 0; i < 2**24; i=i+shift_amount) begin
             #1;

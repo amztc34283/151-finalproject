@@ -35,17 +35,24 @@ module nco_scaler_summer (
     `endif
 
     wire [19:0] sine_out;
+    wire [19:0] sine_out_1;
+    wire [19:0] sine_out_2;
+    wire [19:0] sine_diff;
     wire [19:0] square_out;
     wire [19:0] triangle_out;
     wire [19:0] sawtooth_out;
 
-    assign sine_out = $signed(sine_lut[accumulated_value[23:16]]) >>> sine_shift;
+    assign sine_out_1 = $signed(sine_lut[accumulated_value[23:16]]) >>> sine_shift;
+    assign sine_out_2 = $signed(sine_lut[(accumulated_value[23:16] + 1) % 256]) >>> sine_shift;
+    assign sine_diff = sine_out_2 - sine_out_1;
+    assign sine_out = sine_out_1 + accumulated_value[15:0]/2**16 * sine_diff;
+
     assign square_out = $signed(square_lut[accumulated_value[23:16]]) >>> square_shift;
     assign triangle_out = $signed(triangle_lut[accumulated_value[23:16]]) >>> triangle_shift;
     assign sawtooth_out = $signed(sawtooth_lut[accumulated_value[23:16]]) >>> sawtooth_shift;
 
-    assign sum_out = sine_out + square_out + triangle_out + sawtooth_out;
+    // assign sum_out = sine_out + square_out + triangle_out + sawtooth_out;
     // Comment out below and comment above when testing nco_scaler_summer_tb.
-    // assign sum_out = sine_out;
+    assign sum_out = sine_out;
 
 endmodule
