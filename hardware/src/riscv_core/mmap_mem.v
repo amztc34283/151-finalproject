@@ -152,21 +152,21 @@ module mmap_mem #(
     wire note_start;
     wire note_release;
 
-    // signal_chain signal_chain (
-    //     .clk1(clk),
-    //     .clk2(clk_rx),
-    //     .fcw(fcw_reg),
-    //     .note_reset(note_reset),
-    //     .note_start(note_start),
-    //     .note_release(note_release),
-    //     .sine_shift(sine_shift),
-    //     .square_shift(square_shift),
-    //     .triangle_shift(triangle_shift),
-    //     .sawtooth_shift(sawtooth_shift),
-    //     .global_gain(global_gain),
-    //     .note_finished(note_finished),
-    //     .pwm_duty_cycle(pwm_duty_cycle_synth)
-    // );
+    signal_chain signal_chain (
+        .clk1(clk),
+        .clk2(clk_rx),
+        .fcw(fcw_reg),
+        .note_reset(note_reset),
+        .note_start(note_start),
+        .note_release(note_release),
+        .sine_shift(sine_shift),
+        .square_shift(square_shift),
+        .triangle_shift(triangle_shift),
+        .sawtooth_shift(sawtooth_shift),
+        .global_gain(global_gain),
+        .note_finished(note_finished),
+        .pwm_duty_cycle(pwm_duty_cycle_synth)
+    );
 
     pwm_dac pwm_dac (
         .clk(clk_rx),
