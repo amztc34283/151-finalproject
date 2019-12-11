@@ -18,7 +18,7 @@
 
 `define MMAP_LOAD 3'd1
 `define MMAP_STORE 3'd2
-`define MMAP_J_OR_B 3'd6
+`define MMAP_NO_NOP 3'd6
 `define MMAP_X 3'd7
 
 `define NCO_SINE 16'h0200
@@ -152,21 +152,21 @@ module mmap_mem #(
     wire note_start;
     wire note_release;
 
-    signal_chain signal_chain (
-        .clk1(clk),
-        .clk2(clk_rx),
-        .fcw(fcw_reg),
-        .note_reset(note_reset),
-        .note_start(note_start),
-        .note_release(note_release),
-        .sine_shift(sine_shift),
-        .square_shift(square_shift),
-        .triangle_shift(triangle_shift),
-        .sawtooth_shift(sawtooth_shift),
-        .global_gain(global_gain),
-        .note_finished(note_finished),
-        .pwm_duty_cycle(pwm_duty_cycle_synth)
-    );
+    // signal_chain signal_chain (
+    //     .clk1(clk),
+    //     .clk2(clk_rx),
+    //     .fcw(fcw_reg),
+    //     .note_reset(note_reset),
+    //     .note_start(note_start),
+    //     .note_release(note_release),
+    //     .sine_shift(sine_shift),
+    //     .square_shift(square_shift),
+    //     .triangle_shift(triangle_shift),
+    //     .sawtooth_shift(sawtooth_shift),
+    //     .global_gain(global_gain),
+    //     .note_finished(note_finished),
+    //     .pwm_duty_cycle(pwm_duty_cycle_synth)
+    // );
 
     pwm_dac pwm_dac (
         .clk(clk_rx),
@@ -249,14 +249,16 @@ module mmap_mem #(
     // Seperated cycle/inst counter increment to avoid
     // multiple drivers
     always @(posedge clk) begin
-        if (addr != `MM_UART_RST) begin
-            cycle_counter <= cycle_counter + 1;
-            if (MMap_Sel != `MMAP_J_OR_B)
-                inst_counter <= inst_counter + 1;
-        end else if (addr == `MM_UART_RST || rst) begin
+
+        if (addr == `MM_UART_RST && MMap_Sel == `MMAP_STORE) begin
             cycle_counter <= 0;
             inst_counter <= 0;
+        end else begin
+            cycle_counter <= cycle_counter + 1;
+            if (MMap_Sel != `MMAP_NO_NOP)
+                inst_counter <= inst_counter + 1;
         end
+
     end
 
     always @(posedge clk) begin

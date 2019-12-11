@@ -60,7 +60,7 @@
 `define J_TYPE 5
 `define X_TYPE 6
 
-`define CONTROL_NOP 32'h00000013
+`define CONTROL_NOP 32'h0000_0013
 
 module controller #(
     parameter RESET_PC = 32'h4000_0000)
@@ -108,6 +108,8 @@ module controller #(
    // We wish to forward to FA_2 when instruction in mem/wb uses rd
    // and instruction in execute uses rs1
    assign FA_2 = ex_state == `CSRW ?
+                (mem_wb_inst_reg[11:7] != 0) &&
+                (ex_inst_reg[19:15] != 0) &&
                 (mem_wb_inst_reg[11:7] == ex_inst_reg[19:15]) &&
                 ((mem_wb_state != `BRANCH) &&
                 (mem_wb_state != `STORE) &&
@@ -150,6 +152,8 @@ module controller #(
    // if not CSRW then compare x0s
    assign FA_1 = inst[6:2] == `CSRW ?
                     (mem_wb_inst_reg[11:7] == inst[19:15]) &&
+                    (mem_wb_inst_reg[11:7]  != 0) &&
+                    (inst[19:15] != 0) &&
                     ((mem_wb_state != `BRANCH) &&
                     (mem_wb_state != `STORE) &&
                     (mem_wb_state != `X) &&
@@ -183,6 +187,7 @@ module controller #(
 
     assign ex_state = ex_inst_reg[6:2];
     assign mem_wb_state = mem_wb_inst_reg[6:2];
+
     always @(posedge clk) begin
         if (rst) begin
             ex_inst_reg <= RESET_PC + 32'h00000004;
@@ -191,14 +196,13 @@ module controller #(
         end else begin
             // Naive Branch Prediction, Assume Not Taken
             // Branch:          Ex Stage => Mem Stage
-            // Insert Nop:    IF/D Stage => Ex Stage
-            // if (ex_state == `BRANCH && PCSel == 2'b01)
-            //     ex_inst_reg <= `CONTROL_NOP;
-            // else
-            ex_inst_reg <= inst;
+            // Inserted Nop:    IF/D Stage => Ex Stage
+            if (ex_state == `BRANCH && PCSel == 2'b01)
+                ex_inst_reg <= `CONTROL_NOP;
+            else
+                ex_inst_reg <= inst;
 
             mem_wb_inst_reg <= ex_inst_reg;
-
         end
     end
 
@@ -277,19 +281,21 @@ module controller #(
             BSel = 1;
             ALUSel = `ADD;
             SSel = 3;
+
             // // Naive Branch Prediction, Assume Not Taken
-            // InstSel = 0;
+            InstSel = 0;
 
             // Always Stall
-            InstSel = 1;
+            // InstSel = 1;
+
             // This encoding can be minimized further
             case (ex_inst_reg[14:12])
-                `BEQ: PCSel = BrEq ? 1 : 2;
-                `BNE: PCSel = !BrEq ? 1 : 2;
-                `BLT: PCSel = BrLt ? 1 : 2;
-                `BGE: PCSel = !BrLt ? 1 : 2;
-                `BLTU: PCSel = BrLt ? 1 : 2;
-                `BGEU: PCSel = !BrLt ? 1 : 2;
+                `BEQ: PCSel = BrEq ? 1 : 0;
+                `BNE: PCSel = !BrEq ? 1 : 0;
+                `BLT: PCSel = BrLt ? 1 : 0;
+                `BGE: PCSel = !BrLt ? 1 : 0;
+                `BLTU: PCSel = BrLt ? 1 : 0;
+                `BGEU: PCSel = !BrLt ? 1 : 0;
                 default: PCSel = 0;
             endcase
 
@@ -442,12 +448,9 @@ module controller #(
             // when load address is not DMEM
 
             // Load should stilll occur on mem mapped io instruction
-            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 || ALU_out_mem[31:28] == 4'b0100 ||
-                    ALU_out_mem == `UART_RX || ALU_out_mem == `UART_CTRL ||
-                    ALU_out_mem == `UART_CC ||  ALU_out_mem == `UART_IC ||
-                    ALU_out_mem[31:28] == 4'b1000) ? 1 : 0;
+            RegWrEn = (ALU_out_mem[31:28] == 4'b0011 || ALU_out_mem[31:28] == 4'b0001 || 
+                    ALU_out_mem[31:28] == 4'b0100 || ALU_out_mem[31:28] == 4'b1000) ? 1 : 0;
             // It is okay to just use 4'b1000 for mmap
-
 
         end
         `STORE: begin
