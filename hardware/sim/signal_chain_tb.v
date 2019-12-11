@@ -55,7 +55,88 @@ module signal_chain_tb ();
         $readmemb("../src/audio/triangle.bin", DUT.nco_scaler_summer.triangle_lut);
         $readmemb("../src/audio/sawtooth.bin", DUT.nco_scaler_summer.sawtooth_lut);
 
-        fcw = 24'h123456;
+        // fcw = (2**24)*880/30000;
+        // note_reset = 1;
+        // note_start = 0;
+        // note_release = 0;
+        // sine_shift = 0;
+        // square_shift = 0;
+        // triangle_shift = 0;
+        // sawtooth_shift = 0;
+        // global_gain = 0;
+        //
+        // repeat (1) @(posedge clk1); #1;
+        //
+        // fcw = (2**24)*880/30000;
+        // note_reset = 0;
+        // note_start = 1;
+        // note_release = 0;
+        // sine_shift = 0;
+        // square_shift = 0;
+        // triangle_shift = 0;
+        // sawtooth_shift = 0;
+        // global_gain = 0;
+        //
+        // repeat (1) @(posedge clk1); #1;
+        // // Data should be in the phase_accum stage
+        //
+        // fcw = (2**24)*880/30000;
+        // note_reset = 0;
+        // note_start = 0;
+        // note_release = 0;
+        // sine_shift = 0;
+        // square_shift = 0;
+        // triangle_shift = 0;
+        // sawtooth_shift = 0;
+        // global_gain = 0;
+        //
+        // repeat (1) @(posedge clk1); #1;
+        // // Data should be in the buffer stage
+        //
+        // // Waiting for buffer to output a sample
+        // i = 0;
+        // while (i != 50_000_000/30_000) begin
+        //     repeat (1) @(posedge clk1); #1;
+        //     i = i + 1;
+        // end
+        //
+        // repeat (1) @(posedge clk1); #1;
+        // // Data should be in the first reg four-way handshake stage
+        // repeat (1) @(posedge clk1); #1;
+        // // Data should be outputing to pwm_duty_cycle
+        // repeat (1) @(posedge clk1); #1;
+        // // Ack should be high
+        // repeat (2) @(posedge clk1); #1;
+        //
+        // repeat (100000) @(posedge clk1); #1;
+        //
+        // fcw = (2**24)*880/30000;
+        // note_reset = 0;
+        // note_start = 0;
+        // note_release = 1;
+        // sine_shift = 0;
+        // square_shift = 0;
+        // triangle_shift = 0;
+        // sawtooth_shift = 0;
+        // global_gain = 0;
+        //
+        // repeat (1) @(posedge clk1); #1;
+        //
+        // if (note_finished) begin
+        //     fcw = (2**24)*880/30000;
+        //     note_reset = 1;
+        //     note_start = 0;
+        //     note_release = 0;
+        //     sine_shift = 0;
+        //     square_shift = 0;
+        //     triangle_shift = 0;
+        //     sawtooth_shift = 0;
+        //     global_gain = 0;
+        // end
+        //
+        // repeat (10000) @(posedge clk1); #1;
+
+        fcw = $ceil((2**24)*880/30000);
         note_reset = 1;
         note_start = 0;
         note_release = 0;
@@ -67,7 +148,7 @@ module signal_chain_tb ();
 
         repeat (1) @(posedge clk1); #1;
 
-        fcw = 24'h123456;
+        fcw = $ceil((2**24)*880/30000);
         note_reset = 0;
         note_start = 1;
         note_release = 0;
@@ -80,7 +161,7 @@ module signal_chain_tb ();
         repeat (1) @(posedge clk1); #1;
         // Data should be in the phase_accum stage
 
-        fcw = 24'h123456;
+        fcw = $ceil((2**24)*880/30000);
         note_reset = 0;
         note_start = 0;
         note_release = 0;
@@ -100,13 +181,19 @@ module signal_chain_tb ();
             i = i + 1;
         end
 
+        repeat (10000) @(posedge clk1); #1;
+
+        fcw = $ceil((2**24)*880/30000);
+        note_reset = 0;
+        note_start = 0;
+        note_release = 1;
+        sine_shift = 0;
+        square_shift = 0;
+        triangle_shift = 0;
+        sawtooth_shift = 0;
+        global_gain = 0;
+
         repeat (1) @(posedge clk1); #1;
-        // Data should be in the first reg four-way handshake stage
-        repeat (1) @(posedge clk1); #1;
-        // Data should be outputing to pwm_duty_cycle
-        repeat (1) @(posedge clk1); #1;
-        // Ack should be high
-        repeat (2) @(posedge clk1); #1;
 
         $display("All Test Passed.");
         `ifndef IVERILOG
